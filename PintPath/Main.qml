@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import PintPath
 
 Window {
     id: window
@@ -9,6 +10,11 @@ Window {
     visible: true
     color: "#ffffff"
     title: qsTr("PintPath")
+
+    PintBackend {
+
+        id: backendManager
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -69,6 +75,9 @@ Window {
                         text: qsTr("Northern Most Brewery")
                         highlighted: true
                         flat: false
+                        onClicked: {
+                            backendManager.isWorking
+                        }
                     }
 
                     Button {
