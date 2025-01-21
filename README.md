@@ -26,3 +26,15 @@ Frontend Development in QML (2 days)
 - [X]  Prepare the GitHub repository.
       
 - [ ]  Link the GitHubs.
+
+
+
+## Testing
+- Desktop
+   - MinGW
+- Android (unknown version) API level 35
+    -CPU architecture x86_64
+    -Google Play
+-Samsung
+    -CPU architecture ARM64
+    -Google Play
