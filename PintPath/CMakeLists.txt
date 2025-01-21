@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 
-qt_standard_project_setup(REQUIRES 6.5)
+qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appPintPath
     main.cpp
@@ -32,6 +32,7 @@ set_target_properties(appPintPath PROPERTIES
 
 target_link_libraries(appPintPath
     PRIVATE Qt6::Quick
+
 )
 
 include(GNUInstallDirs)
