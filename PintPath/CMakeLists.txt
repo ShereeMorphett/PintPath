@@ -4,7 +4,7 @@ project(PintPath VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick HttpServer)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -32,7 +32,7 @@ set_target_properties(appPintPath PROPERTIES
 )
 
 target_link_libraries(appPintPath
-    PRIVATE Qt6::Quick
+    PRIVATE Qt6::Quick Qt6::HttpServer
 
 )
 
