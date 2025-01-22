@@ -1,29 +1,37 @@
 #include "pintbackend.h"
 #include <QDebug>
+#include <QNetworkReply>
 
+//TODO: ANDROID INTERNET PERMISSION
 PintBackend::PintBackend()
     : QObject()
 {
-    // Define a basic route
-    server.route("/", []() { return "Hello, world!"; });
+    // Connect to the manager's finished signal to process responses
+    connect(&networkManager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            QByteArray responseData = reply->readAll();
+            qDebug() << "API Response Received:" << QString(responseData);
+            emit apiResponseReceived(QString(responseData));
+        } else {
+            qCritical() << "API Error Occurred:" << reply->errorString();
+            emit apiErrorOccurred(reply->errorString());
+        }
+        reply->deleteLater();
+    });
 
-    // Create a TCP server
-    auto tcpserver = new QTcpServer(this);
+    sendRequest();
+}
 
-    if (!tcpserver->listen(QHostAddress::Any, 8080)) {
-        qCritical() << "Failed to start the TCP server!";
-        delete tcpserver;
-        return;
-    }
+void PintBackend::sendRequest()
+{
+    QUrl apiUrl("https://api.openbrewerydb.org/v1/breweries/random");
 
-    // Bind QTcpServer to QHttpServer
-    if (!server.bind(tcpserver)) {
-        qCritical() << "Failed to bind the HTTP server!";
-        delete tcpserver;
-        return;
-    }
+    QNetworkRequest request(apiUrl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    qDebug() << "HTTP server is listening on port" << tcpserver->serverPort();
+    networkManager.get(request);
+
+    qDebug() << "Request sent to" << apiUrl.toString();
 }
 
 bool PintBackend::isWorking() const
