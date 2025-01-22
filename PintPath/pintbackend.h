@@ -1,8 +1,8 @@
 #ifndef PINTBACKEND_H
 #define PINTBACKEND_H
 
+#include <QNetworkAccessManager>
 #include <QObject>
-#include <QtHttpServer>
 #include <qqml.h>
 
 class PintBackend : public QObject
@@ -16,12 +16,17 @@ public:
     bool isWorking() const;
     void setIsWorking(const bool &newIsWorking);
 
+    void sendRequest(); // Method to send a GET request
+
 signals:
     void isWorkingChanged();
 
+    void apiResponseReceived(const QString &response);
+    void apiErrorOccurred(const QString &error);
+
 private:
     bool m_isWorking;
-    QHttpServer server;
+    QNetworkAccessManager networkManager;
 };
 
 #endif // PINTBACKEND_H
