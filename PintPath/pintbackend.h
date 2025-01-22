@@ -2,6 +2,7 @@
 #define PINTBACKEND_H
 
 #include <QObject>
+#include <QtHttpServer>
 #include <qqml.h>
 
 class PintBackend : public QObject
@@ -20,6 +21,7 @@ signals:
 
 private:
     bool m_isWorking;
+    QHttpServer server;
 };
 
 #endif // PINTBACKEND_H
