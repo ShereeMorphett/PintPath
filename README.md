@@ -48,6 +48,7 @@ linking openSSL to android, learning androindManifest.xml  Cmake linking, how do
 - Android (unknown version) API level 35
     -CPU architecture x86_64
     -Google Play
+  
 -Samsung
     -CPU architecture ARM64
     -Google Play
