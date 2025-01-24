@@ -16,17 +16,23 @@ public:
     bool isWorking() const;
     void setIsWorking(const bool &newIsWorking);
 
-    void sendRequest(); // Method to send a GET request
+    Q_INVOKABLE void sendRequest(const QString &endpoint, const QString &criteria);
+    Q_INVOKABLE void sendGetNameRequest();
 
 signals:
     void isWorkingChanged();
+    void apiResponseReceived(const QString &criteria, const QString &response);
+    void apiErrorOccurred(const QString &criteria, const QString &error);
 
-    void apiResponseReceived(const QString &response);
-    void apiErrorOccurred(const QString &error);
+    //TODO: Gain a better understanding of slots and signals
+private slots:
+    void handleApiResponse(const QString &criteria, const QString &response);
+    void handleApiError(const QString &criteria, const QString &error);
 
 private:
     bool m_isWorking;
     QNetworkAccessManager networkManager;
+    QString currentCriteria;
 };
 
 #endif // PINTBACKEND_H
