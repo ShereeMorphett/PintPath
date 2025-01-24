@@ -27,13 +27,15 @@ Frontend Development in QML (2 days)
       
 - [ ]  Link the GitHubs.
 
-##resources
+## resources
 https://doc.qt.io/qt-6/qnetworkaccessmanager.html
 https://www.qt.io/blog/restful-client-applications-in-qt-6.7-and-forward
 -https://www.openbrewerydb.org/documentation - Open Brewery Rest API's
 -https://doc.qt.io/qt-6/android.html - Qt for Android documentation, where you can get started
 -https://academy.qt.io/catalog - Learning courses where you can find help, for example "Introduction to Qt Quick"
 
+## Issues I ran into
+linking openSSL to android, learning androindManifest.xml  Cmake linking, how do fetch content on cmake and move to the right spot for the androindManifest.xml permissions
 
 ## Testing
 - Desktop
