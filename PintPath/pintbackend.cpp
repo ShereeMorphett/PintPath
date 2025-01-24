@@ -9,7 +9,7 @@ PintBackend::PintBackend()
 {
     //setting up ssl support
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
-
+    currentCriteria = "test";
     connect(this, &PintBackend::apiResponseReceived, this, &PintBackend::handleApiResponse);
     connect(this, &PintBackend::apiErrorOccurred, this, &PintBackend::handleApiError);
 
@@ -17,7 +17,7 @@ PintBackend::PintBackend()
         if (reply->error() == QNetworkReply::NoError) {
             QByteArray responseData = reply->readAll();
             qDebug() << "API Response Received:" << QString(responseData);
-            emit apiResponseReceived("test", QString(responseData));
+            emit apiResponseReceived(currentCriteria, QString(responseData));
         } else {
             qCritical() << "API Error Occurred:" << reply->errorString();
             emit apiErrorOccurred("test", QString(reply->errorString()));
@@ -25,25 +25,41 @@ PintBackend::PintBackend()
         reply->deleteLater();
     });
 
-    sendRequest("https://api.openbrewerydb.org/v1/breweries/random", "Random Brewery");
+    // sendRequest("https://api.openbrewerydb.org/v1/breweries/random", "test");
 }
 
-// TODO: switch case
+void findingNorthern(const QString &response)
+{
+    qDebug() << "Parsing response for Northern Most Brewery:" << response;
+}
+
+void findingSouthern(const QString &response)
+{
+    qDebug() << "Parsing response for Southern Most Brewery:" << response;
+}
+
+void findingLongestName(const QString &response)
+{
+    qDebug() << "Parsing response for Longest Name:" << response;
+}
+
 void PintBackend::handleApiResponse(const QString &criteria, const QString &response)
 {
     qDebug() << "Handling response for criteria:" << criteria;
-
     if (criteria == "northern") {
+        currentCriteria = "northern";
         // Logic for "Northern Most Brewery"
-        qDebug() << "Parsing response for Northern Most Brewery:" << response;
+        findingNorthern(response);
     } else if (criteria == "southern") {
+        currentCriteria = "southern";
         // Logic for "Southern Most Brewery"
-        qDebug() << "Parsing response for Southern Most Brewery:" << response;
+        findingSouthern(response);
     } else if (criteria == "longestName") {
-        // Logic for "Longest Name"
-        qDebug() << "Parsing response for Longest Name:" << response;
+        currentCriteria = "longestName";
+        findingLongestName(response);
+
     } else if (criteria == "test") {
-        // Logic for "Longest Name"
+        currentCriteria = "test";
         qDebug() << "Parsing response for test:" << response;
     } else {
         qWarning() << "Unknown criteria:" << criteria;
@@ -58,29 +74,12 @@ void PintBackend::handleApiError(const QString &criteria, const QString &error)
 
 void PintBackend::sendRequest(const QString &endpoint, const QString &criteria)
 {
-    // Store the criteria for this request
-    currentCriteria = criteria;
 
     QUrl apiUrl(endpoint);
-
+    currentCriteria = criteria;
     QNetworkRequest request(apiUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     networkManager.get(request);
-
-    qDebug() << "Request sent to" << apiUrl.toString() << "with criteria" << criteria;
-}
-
-void PintBackend::sendGetNameRequest()
-{
-    qDebug() << "Sending Name Request";
-    QUrl apiUrl("https://api.openbrewerydb.org/v1/breweries?by_country=ireland");
-
-    QNetworkRequest request(apiUrl);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    networkManager.get(request);
-
-    qDebug() << "Request sent to" << apiUrl.toString();
 }
 
 bool PintBackend::isWorking() const

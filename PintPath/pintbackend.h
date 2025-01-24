@@ -17,7 +17,6 @@ public:
     void setIsWorking(const bool &newIsWorking);
 
     Q_INVOKABLE void sendRequest(const QString &endpoint, const QString &criteria);
-    Q_INVOKABLE void sendGetNameRequest();
 
 signals:
     void isWorkingChanged();

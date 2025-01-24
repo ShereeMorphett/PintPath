@@ -76,7 +76,10 @@ Window {
                         highlighted: true
                         flat: false
                         onClicked: {
-                            backendManager.isWorking
+                            console.log("sending request with criteria northern")
+                            backendManager.sendRequest(
+                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
+                                        "northern")
                         }
                     }
 
@@ -85,6 +88,12 @@ Window {
                         text: qsTr("Southern Most Brewery")
                         highlighted: false
                         flat: false
+                        onClicked: {
+                            console.log("sending request with criteria southern")
+                            backendManager.sendRequest(
+                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
+                                        "southern")
+                        }
                     }
 
                     Button {
@@ -93,9 +102,10 @@ Window {
                         highlighted: false
                         flat: false
                         onClicked: {
+                            console.log("sending request with criteria longestName")
                             backendManager.sendRequest(
                                         "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
-                                        "Longest Name")
+                                        "longestName")
                         }
                     }
                 }
