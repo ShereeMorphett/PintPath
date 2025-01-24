@@ -92,6 +92,11 @@ Window {
                         text: qsTr("Longest Name")
                         highlighted: false
                         flat: false
+                        onClicked: {
+                            backendManager.sendRequest(
+                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
+                                        "Longest Name")
+                        }
                     }
                 }
             }

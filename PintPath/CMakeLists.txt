@@ -24,21 +24,58 @@ if (ANDROID)
     )
     FetchContent_MakeAvailable(android_openssl)
 
+    # Dynamically set OpenSSL directory based on the ABI
+    if (ANDROID_ABI STREQUAL "x86_64")
+        set(OPENSSL_DIR "${android_openssl_SOURCE_DIR}/ssl_3/x86_64")
+    elseif (ANDROID_ABI STREQUAL "arm64-v8a")
+        set(OPENSSL_DIR "${android_openssl_SOURCE_DIR}/ssl_3/arm64-v8a")
+    else()
+        message(FATAL_ERROR "Unsupported ABI: ${ANDROID_ABI}")
+    endif()
+
     # Add OpenSSL libraries to ANDROID_EXTRA_LIBS
     list(APPEND ANDROID_EXTRA_LIBS
-        "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
-        "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
+        "${OPENSSL_DIR}/libcrypto_3.so"
+        "${OPENSSL_DIR}/libssl_3.so"
     )
-    set(ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}" CACHE INTERNAL "")
 
-    # Copy OpenSSL libraries to the target directory
+    # Copy OpenSSL libraries to the output directory
     add_custom_command(TARGET appPintPath POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/android-build-appPintPath/libs/${ANDROID_ABI}/"
         COMMAND ${CMAKE_COMMAND} -E copy
-            "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
-            "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
-            "${CMAKE_BINARY_DIR}/android-build-appPintPath/libs/x86_64/"
+            "${OPENSSL_DIR}/libcrypto_3.so"
+            "${OPENSSL_DIR}/libssl_3.so"
+            "${CMAKE_BINARY_DIR}/android-build-appPintPath/libs/${ANDROID_ABI}/"
     )
+
+    # Cache ANDROID_EXTRA_LIBS
+    set(ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}" CACHE INTERNAL "")
 endif()
+
+# if (ANDROID)
+#     include(FetchContent)
+#     FetchContent_Declare(
+#         android_openssl
+#         GIT_REPOSITORY https://github.com/KDAB/android_openssl.git
+#         GIT_TAG master
+#     )
+#     FetchContent_MakeAvailable(android_openssl)
+
+#     # Add OpenSSL libraries to ANDROID_EXTRA_LIBS
+#     list(APPEND ANDROID_EXTRA_LIBS
+#         "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
+#         "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
+#     )
+#     set(ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}" CACHE INTERNAL "")
+
+#     # Copy OpenSSL libraries to the target directory
+#     add_custom_command(TARGET appPintPath POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -E copy
+#             "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
+#             "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
+#             "${CMAKE_BINARY_DIR}/android-build-appPintPath/libs/x86_64/"
+#     )
+# endif()
 
 qt_add_qml_module(appPintPath
     URI PintPath
