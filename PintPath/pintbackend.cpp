@@ -7,7 +7,6 @@
 #include <QNetworkReply>
 #include <QSslSocket>
 
-// https://stackoverflow.com/questions/2677577/how-to-overload-operator-for-qdebug
 QDebug &operator<<(QDebug &debug, const vendorData &data)
 {
     debug << "id: " << data.id << "\nname: " << data.name << "\nbrewery type: " << data.brewery_type
@@ -21,30 +20,12 @@ QDebug &operator<<(QDebug &debug, const vendorData &data)
     return debug;
 }
 
-// QString id;
-// QString name;
-// QString brewery_type;
-// QString address_1;
-// QString address_2;
-// QString address_3;
-// QString city;
-// QString state_province;
-// QString post_code;
-// QString country;
-// double longitude;
-// double latitude;
-// QString phone;       //TODO could have that open the phone app to call?
-// QString website_url; //TODO could have the hyperlink work?
-
 void PintBackend::populateDatabase(const QByteArray &response)
 {
-    qDebug() << "Populating database";
-
     QJsonDocument jsonDoc = QJsonDocument::fromJson(response);
 
     if (!jsonDoc.isArray()) {
         qCritical() << "Invalid JSON format: Expected an array";
-        // TODO: Add error handling or pop up an error
         return;
     }
 
@@ -58,116 +39,152 @@ void PintBackend::populateDatabase(const QByteArray &response)
             vendor.id = obj.value("id").toString();
             vendor.name = obj.value("name").toString();
             vendor.brewery_type = obj.value("brewery_type").toString();
-            vendor.address_1 = obj.value("address_1").toString(); //TODO how to convert to QString
+            vendor.address_1 = obj.value("address_1").toString();
             vendor.address_2 = obj.value("address_2").toString();
             vendor.address_3 = obj.value("address_3").toString();
             vendor.city = obj.value("city").toString();
             vendor.state_province = obj.value("state_province").toString();
             vendor.post_code = obj.value("post_code").toString();
             vendor.country = obj.value("country").toString();
-            vendor.longitude = obj.value("longitude")
-                                   .toDouble(); //TODO:: this should be like STOD or something
-            vendor.latitude = obj.value("latitude")
-                                  .toDouble(); //TODO:: this should be like STOD or something
+
+            QString longitude = obj.value("longitude").toString();
+            vendor.longitude = longitude.toDouble();
+
+            QString latitude = obj.value("latitude").toString();
+            vendor.latitude = latitude.toDouble();
+
             vendor.phone = obj.value("phone").toString(); // keep as string to allow for +, - etc.
-            vendor.website_url = obj.value("website_url").toString();
-
-            // vendor.address = address;
-
+            vendor.website_url = obj.value("website_url")
+                                     .toString(); //TODO:: you can make this a URL resource?
             vendorDatabase.push_back(vendor);
-
-            qDebug() << "Parsed vendor:" << vendor.name;
         }
     }
-
     qDebug() << "Database populated with" << vendorDatabase.size() << "entries.";
 }
 
 PintBackend::PintBackend()
     : QObject()
 {
-    //setting up ssl support
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
-    currentCriteria = "test";
     connect(this, &PintBackend::apiResponseReceived, this, &PintBackend::handleApiResponse);
     connect(this, &PintBackend::apiErrorOccurred, this, &PintBackend::handleApiError);
 
     connect(&networkManager, &QNetworkAccessManager::finished, this, [this](QNetworkReply *reply) {
         if (reply->error() == QNetworkReply::NoError) {
             QByteArray responseData = reply->readAll();
-            qDebug() << "API Response Received:" << QString(responseData);
-            emit apiResponseReceived(currentCriteria, responseData);
+            emit apiResponseReceived(responseData);
         } else {
             qCritical() << "API Error Occurred:" << reply->errorString();
-            emit apiErrorOccurred("refreshDatabase", QString(reply->errorString()));
+            emit apiErrorOccurred(QString(reply->errorString()));
         }
         reply->deleteLater();
     });
 
-    sendRequest(
-        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200",
-        "refreshDatabase"); //TODO: manage the limitation, what if there are more that 200 breweries in ireland?
+    sendRequest("https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200");
 }
 
-vendorData PintBackend::findingNorthern()
+bool compareByNameLength(const vendorData &a, const vendorData &b)
 {
-    qDebug() << "Parsing response for Northern Most Brewery:";
-
-    return vendorDatabase[0];
+    return a.name.length() < b.name.length();
 }
 
-vendorData PintBackend::findingSouthern()
+//TODO:: probably a silly way to do this, what is a better way?, or suck it up and learn to use LAMBDAS
+bool compareByHighestLatitude(const vendorData &a, const vendorData &b)
 {
-    qDebug() << "Parsing response for Southern Most Brewery:";
-    return vendorDatabase[0];
+    return a.latitude
+           < b.latitude; // Latitude (north or south) always precedes longitude (east or west)
 }
 
-vendorData PintBackend::findingLongestName()
+bool compareByLowestlatitude(const vendorData &a, const vendorData &b)
 {
-    qDebug() << "Parsing response for Longest Name:";
-    return vendorDatabase[0];
+    return a.latitude < b.latitude;
 }
 
-void PintBackend::handleApiResponse(const QString &criteria, const QByteArray &response)
+QVariant PintBackend::findNorthern()
 {
-    //TODO: the criteria may end up being obselte?
-    qDebug() << "Handling response for criteria:" << criteria;
-
-    if (criteria == "refreshDatabase") {
-        currentCriteria = "refreshDatabase";
-        qDebug() << "Parsing response for refreshDatabase:" << response;
-        populateDatabase(response);
-    } else {
-        qWarning() << "Unknown criteria:" << criteria;
+    if (vendorDatabase.empty()) {
+        return QVariant();
     }
+
+    auto northern = std::max_element(vendorDatabase.begin(),
+                                     vendorDatabase.end(),
+                                     compareByHighestLatitude);
+
+    if (northern != vendorDatabase.end()) {
+        QVariantMap vendorMap;
+        vendorMap["id"] = northern->id;
+        vendorMap["name"] = northern->name;
+        vendorMap["address1"] = northern->address_1;
+        vendorMap["city"] = northern->city;
+        vendorMap["country"] = northern->country;
+        vendorMap["website_url"] = northern->website_url;
+        return vendorMap;
+    }
+    return QVariant();
 }
 
-void PintBackend::handleApiError(const QString &criteria, const QString &error)
+QVariant PintBackend::findSouthern()
 {
-    qCritical() << "Error occurred for criteria:" << criteria;
+    if (vendorDatabase.empty()) {
+        return QVariant();
+    }
+
+    auto southern = std::min_element(vendorDatabase.begin(),
+                                     vendorDatabase.end(),
+                                     compareByLowestlatitude);
+
+    if (southern != vendorDatabase.end()) {
+        QVariantMap vendorMap;
+        vendorMap["id"] = southern->id;
+        vendorMap["name"] = southern->name;
+        vendorMap["address1"] = southern->address_1;
+        vendorMap["city"] = southern->city;
+        vendorMap["country"] = southern->country;
+        vendorMap["website_url"] = southern->website_url;
+        return vendorMap;
+    }
+    return QVariant();
+}
+
+QVariant PintBackend::findLongestName()
+{
+    if (vendorDatabase.empty()) {
+        return QVariant();
+    }
+
+    auto longest = std::max_element(vendorDatabase.begin(),
+                                    vendorDatabase.end(),
+                                    compareByNameLength);
+
+    if (longest != vendorDatabase.end()) {
+        QVariantMap vendorMap;
+        vendorMap["id"] = longest->id;
+        vendorMap["name"] = longest->name;
+        vendorMap["address1"] = longest->address_1;
+        vendorMap["city"] = longest->city;
+        vendorMap["country"] = longest->country;
+        vendorMap["website_url"] = longest->website_url;
+        return vendorMap;
+    }
+    return QVariant();
+}
+
+void PintBackend::handleApiResponse(const QByteArray &response)
+{
+    populateDatabase(response);
+}
+
+void PintBackend::handleApiError(const QString &error)
+{
     qCritical() << "Error message:" << error;
 }
 
-void PintBackend::sendRequest(const QString &endpoint, const QString &criteria)
+void PintBackend::sendRequest(const QString &endpoint)
 {
 
     QUrl apiUrl(endpoint);
-    currentCriteria = criteria;
     QNetworkRequest request(apiUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     networkManager.get(request);
 }
 
-bool PintBackend::isWorking() const
-{
-    qDebug() << "Is working:  " << m_isWorking;
-    return m_isWorking;
-}
-
-void PintBackend::setIsWorking(const bool &newIsWorking)
-{
-    if (m_isWorking == newIsWorking)
-        return;
-    m_isWorking = newIsWorking;
-    emit isWorkingChanged();
-}

@@ -52,30 +52,6 @@ if (ANDROID)
     set(ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}" CACHE INTERNAL "")
 endif()
 
-# if (ANDROID)
-#     include(FetchContent)
-#     FetchContent_Declare(
-#         android_openssl
-#         GIT_REPOSITORY https://github.com/KDAB/android_openssl.git
-#         GIT_TAG master
-#     )
-#     FetchContent_MakeAvailable(android_openssl)
-
-#     # Add OpenSSL libraries to ANDROID_EXTRA_LIBS
-#     list(APPEND ANDROID_EXTRA_LIBS
-#         "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
-#         "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
-#     )
-#     set(ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}" CACHE INTERNAL "")
-
-#     # Copy OpenSSL libraries to the target directory
-#     add_custom_command(TARGET appPintPath POST_BUILD
-#         COMMAND ${CMAKE_COMMAND} -E copy
-#             "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libcrypto_3.so"
-#             "${android_openssl_SOURCE_DIR}/ssl_3/x86_64/libssl_3.so"
-#             "${CMAKE_BINARY_DIR}/android-build-appPintPath/libs/x86_64/"
-#     )
-# endif()
 
 qt_add_qml_module(appPintPath
     URI PintPath
@@ -83,7 +59,6 @@ qt_add_qml_module(appPintPath
     QML_FILES
         Main.qml
     SOURCES pintbackend.h pintbackend.cpp
-
     RESOURCES android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
 )
 

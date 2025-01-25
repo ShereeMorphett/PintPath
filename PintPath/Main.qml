@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Controls.Basic
 import QtQuick.Layouts 2.15
+import QtQuick.Window 2.15
 import PintPath
 
 Window {
@@ -18,11 +20,6 @@ Window {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.leftMargin: 0
-        anchors.rightMargin: 0
-        anchors.topMargin: 0
-        anchors.bottomMargin: 0
-
         TabBar {
             id: bar
             spacing: 5
@@ -34,8 +31,8 @@ Window {
             TabButton {
                 text: qsTr("Breweries")
                 spacing: 10
-                Layout.alignment: Qt.AlignHCenter // Center within the layout
-                Layout.fillWidth: true // Evenly distribute across the width
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
             }
 
             TabButton {
@@ -50,10 +47,6 @@ Window {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
             }
-
-            onCurrentIndexChanged: {
-                console.log("Current tab changed to:", currentIndex)
-            }
         }
 
         StackLayout {
@@ -61,10 +54,63 @@ Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
             currentIndex: bar.currentIndex
+
             Item {
                 id: breweriesTab
                 visible: true
                 clip: false
+
+                Popup {
+                    id: popup
+                    width: parent.width
+                    height: parent.height / 2
+                    x: 0
+                    y: parent.height / 2
+                    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+                    property string vendorName: ""
+                    property string vendorAddress: ""
+                    property string vendorPhone: ""
+
+                    enter: Transition {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0.0
+                            to: 1.0
+                        }
+                    }
+                    exit: Transition {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 1.0
+                            to: 0.0
+                        }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#ffffff"
+                        radius: 16
+                        border.color: "#cccccc"
+                        border.width: 1
+
+                        ColumnLayout {
+                            id: columnLayout
+                            width: 100
+                            height: 100
+
+                            Text {
+                                text: "Name: " + popup.vendorName
+                                font.pixelSize: 16
+                            }
+
+                            Text {
+                                text: "Address: " + popup.vendorAddress
+                                font.pixelSize: 16
+                            }
+                        }
+                    }
+                }
+
                 Column {
                     id: column
                     width: 200
@@ -76,10 +122,16 @@ Window {
                         highlighted: true
                         flat: false
                         onClicked: {
-                            console.log("sending request with criteria northern")
-                            backendManager.sendRequest(
-                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
-                                        "northern")
+                            let longestVendor = backendManager.findNorthern()
+                            if (longestVendor !== null) {
+                                popup.vendorName = longestVendor.name
+                                popup.vendorAddress = longestVendor.address1
+                                        + ", " + longestVendor.city
+                            } else {
+                                popup.vendorName = "No vendor found"
+                                popup.vendorAddress = "N/A"
+                            }
+                            popup.open()
                         }
                     }
 
@@ -89,10 +141,16 @@ Window {
                         highlighted: false
                         flat: false
                         onClicked: {
-                            console.log("sending request with criteria southern")
-                            backendManager.sendRequest(
-                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
-                                        "southern")
+                            let longestVendor = backendManager.findSouthern()
+                            if (longestVendor !== null) {
+                                popup.vendorName = longestVendor.name
+                                popup.vendorAddress = longestVendor.address1
+                                        + ", " + longestVendor.city
+                            } else {
+                                popup.vendorName = "No vendor found"
+                                popup.vendorAddress = "N/A"
+                            }
+                            popup.open()
                         }
                     }
 
@@ -102,10 +160,16 @@ Window {
                         highlighted: false
                         flat: false
                         onClicked: {
-                            console.log("sending request with criteria longestName")
-                            backendManager.sendRequest(
-                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
-                                        "longestName")
+                            let longestVendor = backendManager.findLongestName()
+                            if (longestVendor !== null) {
+                                popup.vendorName = longestVendor.name
+                                popup.vendorAddress = longestVendor.address1
+                                        + ", " + longestVendor.city
+                            } else {
+                                popup.vendorName = "No vendor found"
+                                popup.vendorAddress = "N/A"
+                            }
+                            popup.open()
                         }
                     }
                 }
@@ -118,6 +182,10 @@ Window {
                     visible: true
                     anchors.centerIn: parent
                     text: qsTr("Map View (To be implemented)")
+                    anchors.left: parent.horizontalCenter
+                    anchors.leftMargin: 0
+                    anchors.verticalCenterOffset: 200
+                    anchors.horizontalCenterOffset: 300
                 }
             }
 
@@ -135,10 +203,8 @@ Window {
                         highlighted: false
                         flat: false
                         onClicked: {
-                            console.log("sending request - Refresh")
                             backendManager.sendRequest(
-                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
-                                        "Refresh")
+                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
                         }
                     }
                 }
