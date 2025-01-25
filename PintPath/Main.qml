@@ -45,7 +45,7 @@ Window {
                 Layout.fillWidth: true
             }
             TabButton {
-                text: qsTr("About")
+                text: qsTr("Setting")
                 spacing: 10
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
@@ -126,9 +126,21 @@ Window {
                 visible: bar.currentIndex === 2
                 Text {
                     anchors.centerIn: parent
-                    text: qsTr("About PintPath")
+                    text: qsTr("Settings")
                     font.pixelSize: 18
                     font.bold: true
+                    Button {
+                        id: referesh_data
+                        text: qsTr("Refresh Data")
+                        highlighted: false
+                        flat: false
+                        onClicked: {
+                            console.log("sending request - Refresh")
+                            backendManager.sendRequest(
+                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland",
+                                        "Refresh")
+                        }
+                    }
                 }
             }
         }
