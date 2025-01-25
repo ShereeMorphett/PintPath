@@ -15,15 +15,17 @@ Identify northernmost, southernmost, and longest-name breweries.
     
 - [X] Run the app on the desktop, Android emulator, and physical hardware.
 
-
 - [ ] Design the UI to display brewery information.
-  Add eye candy, like a map, using Qt's location or map components.
-  Link C++ backend with QML frontend using the signal-slot mechanism.
-  Testing and Deployment
 
-  Documentation and Finalization (1 day)
+- [ ] Link C++ backend with QML frontend using the signal-slot mechanism.
 
-- [ ] Write the README.md, detailing the learning process, challenges, and the creation workflow.
+- [ ] Add eye candy, like a map, using Qt's location or map components, different filters ie does it serve food, different locator pins.
+
+
+- [ ] Testing and Deployment
+
+- [ ] Documentation and Finalization (Wednesday)
+  -  [ ] Write the README.md, detailing the learning process, challenges, and the creation workflow.
     
 - [X]  Prepare the GitHub repository.
       
