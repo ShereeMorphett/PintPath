@@ -41,6 +41,7 @@ https://www.qt.io/blog/restful-client-applications-in-qt-6.7-and-forward
 
 ## Issues I ran into
 linking openSSL to android, learning androindManifest.xml  Cmake linking, how do fetch content on cmake and move to the right spot for the androindManifest.xml permissions
+Qtdesign tab on Qtcreator, ended up not using it and doing it by hand
 
 ## Testing
 - Desktop
