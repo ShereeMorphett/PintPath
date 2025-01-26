@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls.Material
-import PintPath
+import PintPath 1.0
 
 Window {
     id: window
