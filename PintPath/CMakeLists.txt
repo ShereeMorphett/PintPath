@@ -58,6 +58,7 @@ qt_add_qml_module(appPintPath
         Main.qml
     SOURCES pintbackend.h pintbackend.cpp
     RESOURCES android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
+    RESOURCES android/resources/logo.png
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -74,9 +75,10 @@ set_target_properties(appPintPath PROPERTIES
 
 target_link_libraries(appPintPath
     PRIVATE Qt6::Quick ${ANDROID_EXTRA_LIBS}
-
 )
 
+set_property(TARGET appPintPath PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+          "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
 
 include(GNUInstallDirs)
