@@ -1,3 +1,6 @@
+pragma ComponentBehavior
+
+//TODO: remove this
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Basic
@@ -5,6 +8,10 @@ import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls.Material
 import PintPath 1.0
+
+///////
+import QtPositioning
+import QtLocation
 
 Window {
     id: window
@@ -222,15 +229,68 @@ Window {
                     }
                 }
             }
+            ListModel {
+                id: searchModel
+                ListElement {
+                    latitude: -34.9673
+                    longitude: 138.6963
+                    title: "Pin Location"
+                }
+            }
+            Plugin {
+                id: myPlugin
+                name: "osm"
+                //specify plugin parameters if necessary - this is where the API key goes
+                //PluginParameter {...}
+                //PluginParameter {...}
+                //...
+            }
 
             Item {
                 id: mapTab
-                Text {
-                    anchors.centerIn: parent
-                    text: qsTr("Map View (To be implemented)")
-                    font.pixelSize: 16
-                    color: "#ffffff"
+                MapView {
+                    id: view
+                    property variant lastSearchPosition: QtPositioning.coordinate(
+                                                             -34.9673, 138.6963)
+                    anchors.fill: parent
+                    map.plugin: myPlugin
+                    map.center: lastSearchPosition
+                    map.zoomLevel: 13
+
+                    MapItemView {
+                        model: searchModel
+                        parent: view.map
+                        delegate: MapQuickItem {
+                            coordinate: QtPositioning.coordinate(
+                                            model.latitude,
+                                            model.longitude) // Use `model` instead of `searchModel`
+
+                            anchorPoint.x: rectangle.width * 0.5 // Use the correct reference
+                            anchorPoint.y: rectangle.height
+
+                            sourceItem: Column {
+                                spacing: 5
+                                Rectangle {
+                                    id: rectangle
+                                    width: 20
+                                    height: 20
+                                    radius: 10 // Makes the rectangle circular
+                                    color: "red"
+                                    border.color: "black"
+                                    border.width: 2
+                                }
+
+                                Text {
+                                    text: model.title // Use `model.title`
+                                    font.bold: true
+                                    color: "black"
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
+                            }
+                        }
+                    }
                 }
+                //////////////
             }
 
             Item {
@@ -252,7 +312,7 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
                         backendManager.sendRequest(
-                                    "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
+                            "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
                     }
                 }
             }
