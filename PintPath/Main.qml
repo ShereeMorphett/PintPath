@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Basic
 import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
+import QtQuick.Controls.Material
 import PintPath
 
 Window {
@@ -10,12 +11,41 @@ Window {
     width: 640
     height: 480
     visible: true
-    color: "#ffffff"
+    color: "#111113"
     title: qsTr("PintPath")
+
+    Material.theme: Material.Dark
+    Material.accent: Material.Purple
 
     PintBackend {
 
         id: backendManager
+    }
+
+    function parseVendor(vendor) {
+        if (vendor !== null) {
+            popup.vendorName = vendor.name || "Unknown Name"
+            popup.vendorAddress = (vendor.address1
+                                   || "Unknown Address") + ", " + (vendor.city
+                                                                   || "Unknown City")
+
+            console.log(popup.vendorPhone)
+            popup.vendorPhone = (vendor.phone || "N/A")
+
+            if (vendor.website_url.startsWith("http://")
+                    || vendor.website_url.startsWith("https://")) {
+                popup.vendorWebsite = vendor.website_url
+            } else if (vendor.website_url.startsWith("www.")) {
+                popup.vendorWebsite = "https://" + vendor.website_url
+            } else {
+                popup.vendorWebsite = "N/A"
+            }
+        } else {
+            popup.vendorName = "No vendor found"
+            popup.vendorAddress = "N/A"
+            popup.vendorWebsite = "N/A"
+        }
+        console.log("" + +"")
     }
 
     ColumnLayout {
@@ -33,6 +63,9 @@ Window {
                 spacing: 10
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
+                onClicked: {
+                    bar.currentIndex = 0
+                }
             }
 
             TabButton {
@@ -40,12 +73,18 @@ Window {
                 spacing: 10
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
+                onClicked: {
+                    bar.currentIndex = 1
+                }
             }
             TabButton {
                 text: qsTr("Setting")
                 spacing: 10
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
+                onClicked: {
+                    bar.currentIndex = 2
+                }
             }
         }
 
@@ -57,20 +96,22 @@ Window {
 
             Item {
                 id: breweriesTab
-                visible: true
-                clip: false
-
                 Popup {
                     id: popup
-                    width: parent.width
+                    width: parent.width - 20
                     height: parent.height / 2
+                    rightPadding: -0.1
+                    margins: 4.5
+                    horizontalPadding: -0.1
                     x: 0
                     y: parent.height / 2
                     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                    Material.roundedScale: Material.LargeScale
 
                     property string vendorName: ""
                     property string vendorAddress: ""
                     property string vendorPhone: ""
+                    property url vendorWebsite: ""
 
                     enter: Transition {
                         NumberAnimation {
@@ -86,27 +127,50 @@ Window {
                             to: 0.0
                         }
                     }
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#ffffff"
-                        radius: 16
-                        border.color: "#cccccc"
-                        border.width: 1
 
-                        ColumnLayout {
-                            id: columnLayout
-                            width: 100
-                            height: 100
-
-                            Text {
-                                text: "Name: " + popup.vendorName
-                                font.pixelSize: 16
+                    ColumnLayout {
+                        id: columnLayout
+                        width: 100
+                        height: 100
+                        Text {
+                            color: "#ffffff"
+                            leftPadding: popup.padding + 3
+                            textFormat: Text.RichText
+                            text: "<span style='color: #CE93D8;'>" + popup.vendorName + " </span>"
+                            font.pixelSize: 20
+                        }
+                        Text {
+                            id: websiteText
+                            text: "<span style='color: #CE93D8;'>Website: </span>"
+                                  + "<a href='" + popup.vendorWebsite
+                                  + "' style='color: #ffffff;'>" + popup.vendorWebsite + "</a>"
+                            textFormat: Text.RichText
+                            leftPadding: popup.padding + 3
+                            onLinkActivated: {
+                                Qt.openUrlExternally(popup.vendorWebsite)
                             }
-
-                            Text {
-                                text: "Address: " + popup.vendorAddress
-                                font.pixelSize: 16
+                        }
+                        Text {
+                            id: phoneNumberText
+                            text: "<span style='color: #CE93D8;'>Phone: </span>"
+                                  + "<a href='" + popup.vendorPhone
+                                  + "' style='color: #ffffff;'>" + popup.vendorPhone + "</a>"
+                            leftPadding: popup.padding + 3
+                            textFormat: Text.RichText
+                            onLinkActivated: {
+                                Qt.openUrlExternally("tel:" + popup.vendorPhone)
                             }
+                        }
+                        Text {
+                            id: addressText
+                            color: "#ffffff"
+                            textFormat: Text.RichText
+                            text: "<span style='color: #CE93D8;'>Address: </span>"
+                                  + popup.vendorAddress
+                            leftPadding: popup.padding + 3
+                            Layout.preferredWidth: popup.width - 2 * popup.padding
+                            wrapMode: Text.Wrap
+                            verticalAlignment: Text.AlignVCenter
                         }
                     }
                 }
@@ -116,21 +180,17 @@ Window {
                     width: 200
                     height: 400
 
+                    property string selectedTab: ""
+
                     Button {
                         id: northern_brew
                         text: qsTr("Northern Most Brewery")
-                        highlighted: true
+                        highlighted: column.selectedTab === "northern"
                         flat: false
                         onClicked: {
-                            let longestVendor = backendManager.findNorthern()
-                            if (longestVendor !== null) {
-                                popup.vendorName = longestVendor.name
-                                popup.vendorAddress = longestVendor.address1
-                                        + ", " + longestVendor.city
-                            } else {
-                                popup.vendorName = "No vendor found"
-                                popup.vendorAddress = "N/A"
-                            }
+                            column.selectedTab = "northern"
+                            let northVendor = backendManager.findNorthern()
+                            window.parseVendor(northVendor)
                             popup.open()
                         }
                     }
@@ -138,18 +198,12 @@ Window {
                     Button {
                         id: southern_brew
                         text: qsTr("Southern Most Brewery")
-                        highlighted: false
+                        highlighted: column.selectedTab === "southern"
                         flat: false
                         onClicked: {
-                            let longestVendor = backendManager.findSouthern()
-                            if (longestVendor !== null) {
-                                popup.vendorName = longestVendor.name
-                                popup.vendorAddress = longestVendor.address1
-                                        + ", " + longestVendor.city
-                            } else {
-                                popup.vendorName = "No vendor found"
-                                popup.vendorAddress = "N/A"
-                            }
+                            column.selectedTab = "southern"
+                            let southVendor = backendManager.findSouthern()
+                            window.parseVendor(southVendor)
                             popup.open()
                         }
                     }
@@ -157,18 +211,12 @@ Window {
                     Button {
                         id: longest_name
                         text: qsTr("Longest Name")
-                        highlighted: false
+                        highlighted: column.selectedTab === "longest"
                         flat: false
                         onClicked: {
+                            column.selectedTab = "longest"
                             let longestVendor = backendManager.findLongestName()
-                            if (longestVendor !== null) {
-                                popup.vendorName = longestVendor.name
-                                popup.vendorAddress = longestVendor.address1
-                                        + ", " + longestVendor.city
-                            } else {
-                                popup.vendorName = "No vendor found"
-                                popup.vendorAddress = "N/A"
-                            }
+                            window.parseVendor(longestVendor)
                             popup.open()
                         }
                     }
@@ -177,35 +225,34 @@ Window {
 
             Item {
                 id: mapTab
-                visible: false
                 Text {
-                    visible: true
                     anchors.centerIn: parent
                     text: qsTr("Map View (To be implemented)")
-                    anchors.left: parent.horizontalCenter
-                    anchors.leftMargin: 0
-                    anchors.verticalCenterOffset: 200
-                    anchors.horizontalCenterOffset: 300
+                    font.pixelSize: 16
+                    color: "#ffffff"
                 }
             }
 
             Item {
                 id: aboutTab
-                visible: bar.currentIndex === 2
+
                 Text {
-                    anchors.centerIn: parent
-                    text: qsTr("Settings")
-                    font.pixelSize: 18
-                    font.bold: true
-                    Button {
-                        id: referesh_data
-                        text: qsTr("Refresh Data")
-                        highlighted: false
-                        flat: false
-                        onClicked: {
-                            backendManager.sendRequest(
-                                        "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
-                        }
+                    text: "Settings"
+                    anchors.top: parent.top
+                    anchors.topMargin: 0
+                    font.pixelSize: 16
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: "#ffffff"
+                }
+
+                Button {
+                    id: refresh_data
+                    text: qsTr("Refresh Data")
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    onClicked: {
+                        backendManager.sendRequest(
+                                    "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
                     }
                 }
             }

@@ -1,5 +1,6 @@
 #include "pintbackend.h"
 #include <QDebug>
+#include <QDesktopServices>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -7,16 +8,15 @@
 #include <QNetworkReply>
 #include <QSslSocket>
 
-QDebug &operator<<(QDebug &debug, const vendorData &data)
+QDebug operator<<(QDebug debug, const vendorData &data)
 {
-    debug << "id: " << data.id << "\nname: " << data.name << "\nbrewery type: " << data.brewery_type
-          << "\naddress 1: " << data.address_1 << "\naddress 2: " << data.address_2
-          << "\naddress 3: " << data.address_3 << "\ncity: " << data.city
-          << "\nstate/province: " << data.state_province << "\npost code: " << data.post_code
-          << "\ncountry: " << data.country << "\nlongitude: " << data.longitude
-          << "\nlatitude: " << data.latitude << "\nphone: " << data.phone
-          << "\nWebsite URL: " << data.website_url << "\n";
-
+    debug.nospace() << "id: " << data.id << "\nname: " << data.name
+                    << "\nbrewery type: " << data.brewery_type << "\naddress 1: " << data.address_1
+                    << "\naddress 2: " << data.address_2 << "\naddress 3: " << data.address_3
+                    << "\ncity: " << data.city << "\nstate/province: " << data.state_province
+                    << "\npost code: " << data.post_code << "\ncountry: " << data.country
+                    << "\nlongitude: " << data.longitude << "\nlatitude: " << data.latitude
+                    << "\nphone: " << data.phone << "\nWebsite URL: " << data.website_url;
     return debug;
 }
 
@@ -100,7 +100,20 @@ bool compareByLowestlatitude(const vendorData &a, const vendorData &b)
     return a.latitude < b.latitude;
 }
 
-QVariant PintBackend::findNorthern()
+QVariantMap createVendorMap(const vendorData &data)
+{
+    QVariantMap vendorMap;
+    vendorMap["id"] = data.id;
+    vendorMap["name"] = data.name;
+    vendorMap["phone"] = data.phone;
+    vendorMap["address1"] = data.address_1 + " " + data.address_2 + " " + data.address_3;
+    vendorMap["city"] = data.city;
+    vendorMap["country"] = data.country;
+    vendorMap["website_url"] = data.website_url;
+    return vendorMap;
+}
+
+QVariant PintBackend::findNorthern() //todo :: create vendor map function
 {
     if (vendorDatabase.empty()) {
         return QVariant();
@@ -112,12 +125,7 @@ QVariant PintBackend::findNorthern()
 
     if (northern != vendorDatabase.end()) {
         QVariantMap vendorMap;
-        vendorMap["id"] = northern->id;
-        vendorMap["name"] = northern->name;
-        vendorMap["address1"] = northern->address_1;
-        vendorMap["city"] = northern->city;
-        vendorMap["country"] = northern->country;
-        vendorMap["website_url"] = northern->website_url;
+        vendorMap = createVendorMap(*northern);
         return vendorMap;
     }
     return QVariant();
@@ -135,12 +143,7 @@ QVariant PintBackend::findSouthern()
 
     if (southern != vendorDatabase.end()) {
         QVariantMap vendorMap;
-        vendorMap["id"] = southern->id;
-        vendorMap["name"] = southern->name;
-        vendorMap["address1"] = southern->address_1;
-        vendorMap["city"] = southern->city;
-        vendorMap["country"] = southern->country;
-        vendorMap["website_url"] = southern->website_url;
+        vendorMap = createVendorMap(*southern);
         return vendorMap;
     }
     return QVariant();
@@ -158,12 +161,7 @@ QVariant PintBackend::findLongestName()
 
     if (longest != vendorDatabase.end()) {
         QVariantMap vendorMap;
-        vendorMap["id"] = longest->id;
-        vendorMap["name"] = longest->name;
-        vendorMap["address1"] = longest->address_1;
-        vendorMap["city"] = longest->city;
-        vendorMap["country"] = longest->country;
-        vendorMap["website_url"] = longest->website_url;
+        vendorMap = createVendorMap(*longest);
         return vendorMap;
     }
     return QVariant();

@@ -17,16 +17,13 @@ struct vendorData
     QString state_province;
     QString post_code;
     QString country;
-    // QString longitude;
-    // QString latitude;
     double longitude;
     double latitude;
     QString phone;       //TODO could have that open the phone app to call?
     QString website_url; //TODO could have the hyperlink work?
 };
 
-// https://stackoverflow.com/questions/2677577/how-to-overload-operator-for-qdebug
-QDebug &operator<<(QDebug &debug, const vendorData &data);
+QDebug operator<<(QDebug debug, const vendorData &data);
 
 class PintBackend : public QObject
 {
