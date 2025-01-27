@@ -27,8 +27,6 @@ Window {
 
     function updateVendorModel(vendors) {
 
-        // filteredVendorModel
-        // let vendorModel = backendManager.getVendorModel()
         if (!vendors || vendors.length === 0) {
             console.log("No vendors found")
             return
