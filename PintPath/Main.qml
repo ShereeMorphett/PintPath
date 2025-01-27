@@ -37,7 +37,6 @@ Window {
 
             console.log(popup.vendorPhone)
             popup.vendorPhone = (vendor.phone || "N/A")
-
             if (vendor.website_url.startsWith("http://")
                     || vendor.website_url.startsWith("https://")) {
                 popup.vendorWebsite = vendor.website_url
@@ -51,7 +50,6 @@ Window {
             popup.vendorAddress = "N/A"
             popup.vendorWebsite = "N/A"
         }
-        console.log("" + +"")
     }
 
     ColumnLayout {
@@ -105,7 +103,7 @@ Window {
                 Popup {
                     id: popup
                     width: parent.width - 20
-                    height: parent.height / 2
+                    height: parent.height / 1.25
                     rightPadding: -0.1
                     margins: 4.5
                     horizontalPadding: -0.1
@@ -152,6 +150,8 @@ Window {
                                   + "' style='color: #ffffff;'>" + popup.vendorWebsite + "</a>"
                             textFormat: Text.RichText
                             leftPadding: popup.padding + 3
+                            visible: popup.vendorWebsite && String(
+                                         popup.vendorWebsite) !== "N/A"
                             onLinkActivated: {
                                 Qt.openUrlExternally(popup.vendorWebsite)
                             }
@@ -163,6 +163,7 @@ Window {
                                   + "' style='color: #ffffff;'>" + popup.vendorPhone + "</a>"
                             leftPadding: popup.padding + 3
                             textFormat: Text.RichText
+                            visible: popup.vendorPhone !== "N/A"
                             onLinkActivated: {
                                 Qt.openUrlExternally("tel:" + popup.vendorPhone)
                             }
@@ -181,11 +182,11 @@ Window {
                     }
                 }
 
-                Column {
+                GridLayout {
                     id: column
-                    width: 200
-                    height: 400
-
+                    width: 100
+                    rows: 1
+                    columns: 2
                     property string selectedTab: ""
 
                     Button {
@@ -225,6 +226,7 @@ Window {
                             window.parseVendor(longestVendor)
                             popup.open()
                         }
+                        height: 100
                     }
                 }
             }
