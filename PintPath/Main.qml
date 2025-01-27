@@ -26,8 +26,9 @@ Window {
     }
 
     function updateVendorModel(vendors) {
-        let vendorModel = backendManager.getVendorModel()
 
+        // filteredVendorModel
+        // let vendorModel = backendManager.getVendorModel()
         if (!vendors || vendors.length === 0) {
             console.log("No vendors found")
             return
@@ -40,15 +41,15 @@ Window {
 
         for (var i = 0; i < vendors.length; i++) {
             let vendor = vendors[i]
-            vendorModel.append({
-                                   "latitude": vendor.latitude,
-                                   "longitude": vendor.longitude,
-                                   "name": vendor.name,
-                                   "address": vendor.address,
-                                   "phone": vendor.phone,
-                                   "websiteUrl": vendor.websiteUrl,
-                                   "breweryType": vendor.breweryType
-                               })
+            filteredVendorModel.append({
+                                           "latitude": vendor.latitude,
+                                           "longitude": vendor.longitude,
+                                           "name": vendor.name,
+                                           "address": vendor.address,
+                                           "phone": vendor.phone,
+                                           "websiteUrl": vendor.websiteUrl,
+                                           "breweryType": vendor.breweryType
+                                       })
 
             minLat = Math.min(minLat, vendor.latitude)
             maxLat = Math.max(maxLat, vendor.latitude)
@@ -281,12 +282,10 @@ Window {
             Item {
                 id: mapTab
                 ColumnLayout {
-                    id: mapUi
                     anchors.fill: parent
                     spacing: 10
 
                     ComboBox {
-                        id: filterUi
                         visible: true
                         Layout.fillWidth: true
                         model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food"]
@@ -316,8 +315,11 @@ Window {
                                      }
                     }
 
+                    ListModel {
+                        id: filteredVendorModel
+                    }
+
                     Rectangle {
-                        id: bounds
                         Layout.fillHeight: true
                         Layout.fillWidth: true
 
@@ -331,7 +333,7 @@ Window {
                             map.zoomLevel: -40
 
                             MapItemView {
-                                model: backendManager.getVendorModel()
+                                model: filteredVendorModel
                                 parent: view.map
                                 delegate: MapQuickItem {
                                     coordinate: QtPositioning.coordinate(
@@ -344,6 +346,13 @@ Window {
                                     sourceItem: Column {
                                         spacing: 5
                                         Rectangle {
+                                            id: rectangle
+                                            width: 10
+                                            height: 10
+                                            radius: 5
+                                            color: "red"
+                                            border.color: "black"
+                                            border.width: 1
                                             MouseArea {
                                                 anchors.fill: parent
                                                 onClicked: {
@@ -358,13 +367,6 @@ Window {
                                                     popup.open()
                                                 }
                                             }
-                                            id: rectangle
-                                            width: 10
-                                            height: 10
-                                            radius: 5
-                                            color: "red"
-                                            border.color: "black"
-                                            border.width: 1
                                         }
                                     }
                                 }
@@ -376,7 +378,6 @@ Window {
 
             Item {
                 id: aboutTab
-
                 Text {
                     text: "Settings"
                     anchors.top: parent.top
@@ -387,7 +388,6 @@ Window {
                 }
 
                 Button {
-                    id: refresh_data
                     text: qsTr("Refresh Data")
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
