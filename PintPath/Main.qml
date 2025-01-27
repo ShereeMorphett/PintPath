@@ -28,27 +28,36 @@ Window {
         id: backendManager
     }
 
+    function updateSearchModel(vendor) {
+        // Clear the existing pins
+        searchModel.clear()
+
+        if (vendor !== null && vendor !== undefined) {
+            // Add the new pin to the model
+            searchModel.append({
+                                   "latitude": vendor.latitude,
+                                   "longitude": vendor.longitude,
+                                   "title": vendor.name
+                               })
+
+            view.map.center = QtPositioning.coordinate(vendor.latitude,
+                                                       vendor.longitude)
+        } else {
+            console.warn("No vendor data provided to updateSearchModel.")
+        }
+    }
+
     function parseVendor(vendor) {
         if (vendor !== null) {
             popup.vendorName = vendor.name || "Unknown Name"
-            popup.vendorAddress = (vendor.address1
-                                   || "Unknown Address") + ", " + (vendor.city
-                                                                   || "Unknown City")
-
-            console.log(popup.vendorPhone)
-            popup.vendorPhone = (vendor.phone || "N/A")
-            if (vendor.website_url.startsWith("http://")
-                    || vendor.website_url.startsWith("https://")) {
-                popup.vendorWebsite = vendor.website_url
-            } else if (vendor.website_url.startsWith("www.")) {
-                popup.vendorWebsite = "https://" + vendor.website_url
-            } else {
-                popup.vendorWebsite = "N/A"
-            }
+            popup.vendorAddress = (vendor.address || "Unknown Address")
+            popup.vendorPhone = vendor.phone || "N/A"
+            popup.vendorWebsite = vendor.website_url || "N/A"
         } else {
             popup.vendorName = "No vendor found"
             popup.vendorAddress = "N/A"
             popup.vendorWebsite = "N/A"
+            popup.vendorPhone = "N/A"
         }
     }
 
@@ -197,6 +206,7 @@ Window {
                         onClicked: {
                             column.selectedTab = "northern"
                             let northVendor = backendManager.findNorthern()
+                            console.log(northVendor)
                             window.parseVendor(northVendor)
                             popup.open()
                         }
@@ -226,7 +236,6 @@ Window {
                             window.parseVendor(longestVendor)
                             popup.open()
                         }
-                        height: 100
                     }
                 }
             }
@@ -260,7 +269,25 @@ Window {
                         id: filterUi
                         visible: true
                         Layout.fillWidth: true
-                        model: ["Southern Most Brewery", "Longest Most Brewery", "Longest Name", "Food"]
+                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Food"]
+                        onActivated: index => {
+                            switch (index) {
+                                case 0:
+                                updateSearchModel(backendManager.findSouthern())
+                                break
+                                case 1:
+                                updateSearchModel(backendManager.findNorthern())
+                                break
+                                case 2:
+                                updateSearchModel(
+                                    backendManager.findLongestName())
+                                break
+                                case 3:
+                                console.log(
+                                    "Food filter is not implemented yet.")
+                                break
+                            }
+                        }
                     }
 
                     Rectangle {
@@ -271,12 +298,10 @@ Window {
                         MapView {
                             id: view
                             anchors.fill: parent
-                            property variant lastSearchPosition: QtPositioning.coordinate(
-                                                                     -34.9673,
-                                                                     138.6963)
+
                             visible: true
                             map.plugin: myPlugin
-                            map.center: lastSearchPosition
+
                             map.zoomLevel: 13
 
                             MapItemView {
