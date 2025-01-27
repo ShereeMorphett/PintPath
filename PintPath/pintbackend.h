@@ -40,10 +40,10 @@ public:
     Q_INVOKABLE QVariant findNorthern();
     Q_INVOKABLE QVariant findSouthern();
     Q_INVOKABLE QVariant findLongestName();
+    Q_INVOKABLE QVariant findServesFood();
     Q_INVOKABLE VendorModel *getVendorModel() const { return m_vendorModel; }
 
 signals:
-    void isWorkingChanged();
     void apiResponseReceived(const QByteArray &response);
     void apiErrorOccurred(const QString &error);
 

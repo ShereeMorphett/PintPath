@@ -28,22 +28,32 @@ Window {
         id: backendManager
     }
 
-    function updateSearchModel(vendor) {
-        // Clear the existing pins
+    function updateSearchModel(vendors) {
+        // Clear the previous pins
         searchModel.clear()
+        console.log("Cleared searchModel.")
 
-        if (vendor !== null && vendor !== undefined) {
-            // Add the new pin to the model
+        if (vendors === null || vendors === undefined || vendors.length === 0) {
+            console.warn("No vendors found.")
+            return
+        }
+
+        for (var i = 0; i < vendors.length; i++) {
+            console.log("Adding vendor:", vendors[i].name, vendors[i].latitude,
+                        vendors[i].longitude)
             searchModel.append({
-                                   "latitude": vendor.latitude,
-                                   "longitude": vendor.longitude,
-                                   "title": vendor.name
+                                   "latitude": vendors[i].latitude,
+                                   "longitude": vendors[i].longitude,
+                                   "title": vendors[i].name
                                })
+        }
 
-            view.map.center = QtPositioning.coordinate(vendor.latitude,
-                                                       vendor.longitude)
-        } else {
-            console.warn("No vendor data provided to updateSearchModel.")
+        // Center the map on the first vendor
+        if (vendors.length > 0) {
+            console.log("Centering map on:", vendors[0].latitude,
+                        vendors[0].longitude)
+            view.map.center = QtPositioning.coordinate(vendors[0].latitude,
+                                                       vendors[0].longitude)
         }
     }
 
@@ -273,18 +283,22 @@ Window {
                         onActivated: index => {
                             switch (index) {
                                 case 0:
-                                updateSearchModel(backendManager.findSouthern())
+                                updateSearchModel(
+                                    [backendManager.findSouthern()])
                                 break
                                 case 1:
-                                updateSearchModel(backendManager.findNorthern())
+                                updateSearchModel(
+                                    [backendManager.findNorthern()])
                                 break
                                 case 2:
                                 updateSearchModel(
-                                    backendManager.findLongestName())
+                                    [backendManager.findLongestName()])
                                 break
                                 case 3:
                                 console.log(
                                     "Food filter is not implemented yet.")
+                                updateSearchModel(
+                                    backendManager.findServesFood())
                                 break
                             }
                         }
@@ -302,7 +316,7 @@ Window {
                             visible: true
                             map.plugin: myPlugin
 
-                            map.zoomLevel: 13
+                            map.zoomLevel: -40
 
                             MapItemView {
                                 model: searchModel
