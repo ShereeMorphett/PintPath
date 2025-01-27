@@ -10,19 +10,19 @@ struct vendorData
 {
     QString id;
     QString name;
-    QString brewery_type;
+    QString breweryType;
     QString address; //CONCATINATE ON PARSING
     QString address_1;
     QString address_2;
     QString address_3;
     QString city;
-    QString state_province;
-    QString post_code;
+    QString stateProvince;
+    QString postcode;
     QString country;
     double longitude;
     double latitude;
     QString phone;
-    QString website_url;
+    QString websiteUrl;
 };
 
 QDebug operator<<(QDebug debug, const vendorData &data);

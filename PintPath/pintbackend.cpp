@@ -48,18 +48,18 @@ void PintBackend::populateDatabase(const QByteArray &response)
             vendorData vendor;
             vendor.id = obj.value("id").toString();
             vendor.name = obj.value("name").toString();
-            vendor.brewery_type = obj.value("brewery_type").toString();
+            vendor.breweryType = obj.value("brewery_type").toString();
             vendor.address = obj.value("address_1").toString() + " "
                              + obj.value("address_2").toString() + " "
                              + obj.value("address_3").toString();
             vendor.city = obj.value("city").toString();
-            vendor.state_province = obj.value("state_province").toString();
-            vendor.post_code = obj.value("post_code").toString();
+            vendor.stateProvince = obj.value("state_province").toString();
+            vendor.postcode = obj.value("post_code").toString();
             vendor.country = obj.value("country").toString();
             vendor.longitude = obj.value("longitude").toString().toDouble();
             vendor.latitude = obj.value("latitude").toString().toDouble();
             vendor.phone = obj.value("phone").toString();
-            vendor.website_url = obj.value("website_url").toString();
+            vendor.websiteUrl = obj.value("website_url").toString();
 
             vendors.append(vendor);
         }
@@ -71,15 +71,18 @@ void PintBackend::populateDatabase(const QByteArray &response)
 QVariantMap PintBackend::createVendorMap(QModelIndex modelIndex)
 {
     QVariantMap vendor;
+    vendor["id"] = m_vendorModel->data(modelIndex, VendorModel::IdRole);
     vendor["name"] = m_vendorModel->data(modelIndex, VendorModel::NameRole);
-    vendor["phone"] = m_vendorModel->data(modelIndex, VendorModel::PhoneRole);
-    vendor["website_url"] = m_vendorModel->data(modelIndex, VendorModel::WebsiteUrlRole);
+    vendor["breweryType"] = m_vendorModel->data(modelIndex, VendorModel::BreweryTypeRole);
     vendor["address"] = m_vendorModel->data(modelIndex, VendorModel::AddressRole);
     vendor["city"] = m_vendorModel->data(modelIndex, VendorModel::CityRole);
+    vendor["stateProvince"] = m_vendorModel->data(modelIndex, VendorModel::StateProvinceRole);
+    vendor["postCode"] = m_vendorModel->data(modelIndex, VendorModel::PostcodeRole);
     vendor["country"] = m_vendorModel->data(modelIndex, VendorModel::CountryRole);
-    vendor["latitude"] = m_vendorModel->data(modelIndex, VendorModel::LatitudeRole);
     vendor["longitude"] = m_vendorModel->data(modelIndex, VendorModel::LongitudeRole);
-
+    vendor["latitude"] = m_vendorModel->data(modelIndex, VendorModel::LatitudeRole);
+    vendor["phone"] = m_vendorModel->data(modelIndex, VendorModel::PhoneRole);
+    vendor["websiteUrl"] = m_vendorModel->data(modelIndex, VendorModel::WebsiteUrlRole);
     return vendor;
 }
 
@@ -101,7 +104,7 @@ QVariant PintBackend::findServesFood()
             vendors.append(vendor);
         }
     }
-
+    qDebug() << vendors.size();
     return QVariant::fromValue(vendors);
 }
 

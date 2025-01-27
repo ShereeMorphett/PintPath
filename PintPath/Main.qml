@@ -28,32 +28,56 @@ Window {
         id: backendManager
     }
 
-    function updateSearchModel(vendors) {
-        // Clear the previous pins
-        searchModel.clear()
-        console.log("Cleared searchModel.")
+    function updateVendorModel(vendors) {
+        vendorModel.clear()
 
-        if (vendors === null || vendors === undefined || vendors.length === 0) {
-            console.warn("No vendors found.")
+        if (!vendors || vendors.length === 0) {
+            console.log("No vendors found")
             return
         }
 
+        let minLat = Number.MAX_VALUE
+        let maxLat = -Number.MAX_VALUE
+        let minLon = Number.MAX_VALUE
+        let maxLon = -Number.MAX_VALUE
+
         for (var i = 0; i < vendors.length; i++) {
-            console.log("Adding vendor:", vendors[i].name, vendors[i].latitude,
-                        vendors[i].longitude)
-            searchModel.append({
-                                   "latitude": vendors[i].latitude,
-                                   "longitude": vendors[i].longitude,
-                                   "title": vendors[i].name
+            let vendor = vendors[i]
+            vendorModel.append({
+                                   "latitude": vendor.latitude,
+                                   "longitude": vendor.longitude,
+                                   "name": vendor.name,
+                                   "address": vendor.address,
+                                   "phone": vendor.phone,
+                                   "websiteUrl": vendor.websiteUrl,
+                                   "breweryType": vendor.breweryType
                                })
+
+            // Update bounds for zooming
+            minLat = Math.min(minLat, vendor.latitude)
+            maxLat = Math.max(maxLat, vendor.latitude)
+            minLon = Math.min(minLon, vendor.longitude)
+            maxLon = Math.max(maxLon, vendor.longitude)
         }
 
-        // Center the map on the first vendor
-        if (vendors.length > 0) {
-            console.log("Centering map on:", vendors[0].latitude,
-                        vendors[0].longitude)
-            view.map.center = QtPositioning.coordinate(vendors[0].latitude,
-                                                       vendors[0].longitude)
+        // Calculate the center of the bounding box
+        let centerLat = (minLat + maxLat) / 2
+        let centerLon = (minLon + maxLon) / 2
+        view.map.center = QtPositioning.coordinate(centerLat, centerLon)
+
+        // Calculate zoom level
+        let latDiff = maxLat - minLat
+        let lonDiff = maxLon - minLon
+        let maxDiff = Math.max(latDiff, lonDiff)
+
+        if (maxDiff < 0.01) {
+            view.map.zoomLevel = 15 // Very close
+        } else if (maxDiff < 0.1) {
+            view.map.zoomLevel = 12 // Medium zoom
+        } else if (maxDiff < 1) {
+            view.map.zoomLevel = 10 // Further out
+        } else {
+            view.map.zoomLevel = 8 // Very far
         }
     }
 
@@ -62,12 +86,94 @@ Window {
             popup.vendorName = vendor.name || "Unknown Name"
             popup.vendorAddress = (vendor.address || "Unknown Address")
             popup.vendorPhone = vendor.phone || "N/A"
-            popup.vendorWebsite = vendor.website_url || "N/A"
+            popup.vendorWebsite = vendor.websiteUrl || "N/A"
         } else {
             popup.vendorName = "No vendor found"
             popup.vendorAddress = "N/A"
             popup.vendorWebsite = "N/A"
             popup.vendorPhone = "N/A"
+        }
+    }
+
+    Popup {
+        id: popup
+        width: parent.width - 20
+        height: parent.height / 1.75
+        rightPadding: -0.1
+        margins: 4.5
+        horizontalPadding: -0.1
+        x: 0
+        y: parent.height / 2
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Material.roundedScale: Material.LargeScale
+
+        property string vendorName: ""
+        property string vendorAddress: ""
+        property string vendorPhone: ""
+        property url vendorWebsite: ""
+
+        enter: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 0.0
+                to: 1.0
+            }
+        }
+
+        exit: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 1.0
+                to: 0.0
+            }
+        }
+
+        ColumnLayout {
+            id: columnLayout
+            width: 100
+            height: 100
+            Text {
+                color: "#ffffff"
+                leftPadding: popup.padding + 3
+                textFormat: Text.RichText
+                text: "<span style='color: #CE93D8;'>" + popup.vendorName + " </span>"
+                font.pixelSize: 20
+            }
+            Text {
+                id: websiteText
+                text: "<span style='color: #CE93D8;'>Website: </span>"
+                      + "<a href='" + popup.vendorWebsite
+                      + "' style='color: #ffffff;'>" + popup.vendorWebsite + "</a>"
+                textFormat: Text.RichText
+                leftPadding: popup.padding + 3
+                visible: popup.vendorWebsite && String(
+                             popup.vendorWebsite) !== "N/A"
+                onLinkActivated: {
+                    Qt.openUrlExternally(popup.vendorWebsite)
+                }
+            }
+            Text {
+                id: phoneNumberText
+                text: "<span style='color: #CE93D8;'>Phone: </span>"
+                      + "<a href='" + popup.vendorPhone
+                      + "' style='color: #ffffff;'>" + popup.vendorPhone + "</a>"
+                leftPadding: popup.padding + 3
+                textFormat: Text.RichText
+                visible: popup.vendorPhone !== "N/A"
+                onLinkActivated: {
+                    Qt.openUrlExternally("tel:" + popup.vendorPhone)
+                }
+            }
+            Text {
+                id: addressText
+                color: "#ffffff"
+                textFormat: Text.RichText
+                text: "<span style='color: #CE93D8;'>Address: </span>" + popup.vendorAddress
+                leftPadding: popup.padding + 3
+                Layout.preferredWidth: popup.width - 2 * popup.padding
+                wrapMode: Text.Wrap
+                verticalAlignment: Text.AlignVCenter
+            }
         }
     }
 
@@ -119,87 +225,6 @@ Window {
 
             Item {
                 id: breweriesTab
-                Popup {
-                    id: popup
-                    width: parent.width - 20
-                    height: parent.height / 1.25
-                    rightPadding: -0.1
-                    margins: 4.5
-                    horizontalPadding: -0.1
-                    x: 0
-                    y: parent.height / 2
-                    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-                    Material.roundedScale: Material.LargeScale
-
-                    property string vendorName: ""
-                    property string vendorAddress: ""
-                    property string vendorPhone: ""
-                    property url vendorWebsite: ""
-
-                    enter: Transition {
-                        NumberAnimation {
-                            property: "opacity"
-                            from: 0.0
-                            to: 1.0
-                        }
-                    }
-                    exit: Transition {
-                        NumberAnimation {
-                            property: "opacity"
-                            from: 1.0
-                            to: 0.0
-                        }
-                    }
-
-                    ColumnLayout {
-                        id: columnLayout
-                        width: 100
-                        height: 100
-                        Text {
-                            color: "#ffffff"
-                            leftPadding: popup.padding + 3
-                            textFormat: Text.RichText
-                            text: "<span style='color: #CE93D8;'>" + popup.vendorName + " </span>"
-                            font.pixelSize: 20
-                        }
-                        Text {
-                            id: websiteText
-                            text: "<span style='color: #CE93D8;'>Website: </span>"
-                                  + "<a href='" + popup.vendorWebsite
-                                  + "' style='color: #ffffff;'>" + popup.vendorWebsite + "</a>"
-                            textFormat: Text.RichText
-                            leftPadding: popup.padding + 3
-                            visible: popup.vendorWebsite && String(
-                                         popup.vendorWebsite) !== "N/A"
-                            onLinkActivated: {
-                                Qt.openUrlExternally(popup.vendorWebsite)
-                            }
-                        }
-                        Text {
-                            id: phoneNumberText
-                            text: "<span style='color: #CE93D8;'>Phone: </span>"
-                                  + "<a href='" + popup.vendorPhone
-                                  + "' style='color: #ffffff;'>" + popup.vendorPhone + "</a>"
-                            leftPadding: popup.padding + 3
-                            textFormat: Text.RichText
-                            visible: popup.vendorPhone !== "N/A"
-                            onLinkActivated: {
-                                Qt.openUrlExternally("tel:" + popup.vendorPhone)
-                            }
-                        }
-                        Text {
-                            id: addressText
-                            color: "#ffffff"
-                            textFormat: Text.RichText
-                            text: "<span style='color: #CE93D8;'>Address: </span>"
-                                  + popup.vendorAddress
-                            leftPadding: popup.padding + 3
-                            Layout.preferredWidth: popup.width - 2 * popup.padding
-                            wrapMode: Text.Wrap
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
 
                 GridLayout {
                     id: column
@@ -216,7 +241,6 @@ Window {
                         onClicked: {
                             column.selectedTab = "northern"
                             let northVendor = backendManager.findNorthern()
-                            console.log(northVendor)
                             window.parseVendor(northVendor)
                             popup.open()
                         }
@@ -250,15 +274,6 @@ Window {
                 }
             }
 
-            ListModel {
-                id: searchModel
-                ListElement {
-                    latitude: -34.9673
-                    longitude: 138.6963
-                    title: "Pin Location"
-                }
-            }
-
             Plugin {
                 id: myPlugin
                 name: "osm"
@@ -279,25 +294,23 @@ Window {
                         id: filterUi
                         visible: true
                         Layout.fillWidth: true
-                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Food"]
+                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food"]
                         onActivated: index => {
                             switch (index) {
                                 case 0:
-                                updateSearchModel(
+                                updateVendorModel(
                                     [backendManager.findSouthern()])
                                 break
                                 case 1:
-                                updateSearchModel(
+                                updateVendorModel(
                                     [backendManager.findNorthern()])
                                 break
                                 case 2:
-                                updateSearchModel(
+                                updateVendorModel(
                                     [backendManager.findLongestName()])
                                 break
                                 case 3:
-                                console.log(
-                                    "Food filter is not implemented yet.")
-                                updateSearchModel(
+                                updateVendorModel(
                                     backendManager.findServesFood())
                                 break
                             }
@@ -319,7 +332,7 @@ Window {
                             map.zoomLevel: -40
 
                             MapItemView {
-                                model: searchModel
+                                model: vendorModel
                                 parent: view.map
                                 delegate: MapQuickItem {
                                     coordinate: QtPositioning.coordinate(
@@ -332,20 +345,27 @@ Window {
                                     sourceItem: Column {
                                         spacing: 5
                                         Rectangle {
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                onClicked: {
+                                                    popup.vendorName = model.name
+                                                    || "Unknown Name"
+                                                    popup.vendorAddress = model.address
+                                                    || "Address Not Available"
+                                                    popup.vendorPhone = model.phone
+                                                    || "N/A"
+                                                    popup.vendorWebsite = model.websiteUrl
+                                                    || "N/A"
+                                                    popup.open()
+                                                }
+                                            }
                                             id: rectangle
-                                            width: 20
-                                            height: 20
-                                            radius: 10
+                                            width: 10
+                                            height: 10
+                                            radius: 5
                                             color: "red"
                                             border.color: "black"
-                                            border.width: 2
-                                        }
-
-                                        Text {
-                                            text: model.title
-                                            font.bold: true
-                                            color: "black"
-                                            horizontalAlignment: Text.AlignHCenter
+                                            border.width: 1
                                         }
                                     }
                                 }
