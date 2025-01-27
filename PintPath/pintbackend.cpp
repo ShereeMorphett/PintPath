@@ -8,62 +8,9 @@
 #include <QNetworkReply>
 #include <QSslSocket>
 
-QDebug operator<<(QDebug debug, const vendorData &data)
-{
-    debug.nospace() << "id: " << data.id << "\nname: " << data.name
-                    << "\nbrewery type: " << data.brewery_type << "\naddress 1: " << data.address_1
-                    << "\naddress 2: " << data.address_2 << "\naddress 3: " << data.address_3
-                    << "\ncity: " << data.city << "\nstate/province: " << data.state_province
-                    << "\npost code: " << data.post_code << "\ncountry: " << data.country
-                    << "\nlongitude: " << data.longitude << "\nlatitude: " << data.latitude
-                    << "\nphone: " << data.phone << "\nWebsite URL: " << data.website_url;
-    return debug;
-}
-
-void PintBackend::populateDatabase(const QByteArray &response)
-{
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(response);
-
-    if (!jsonDoc.isArray()) {
-        qCritical() << "Invalid JSON format: Expected an array";
-        return;
-    }
-
-    vendorDatabase.clear();
-
-    QJsonArray jsonArray = jsonDoc.array();
-    for (const QJsonValue &value : jsonArray) {
-        if (value.isObject()) {
-            QJsonObject obj = value.toObject();
-            vendorData vendor;
-            vendor.id = obj.value("id").toString();
-            vendor.name = obj.value("name").toString();
-            vendor.brewery_type = obj.value("brewery_type").toString();
-            vendor.address_1 = obj.value("address_1").toString();
-            vendor.address_2 = obj.value("address_2").toString();
-            vendor.address_3 = obj.value("address_3").toString();
-            vendor.city = obj.value("city").toString();
-            vendor.state_province = obj.value("state_province").toString();
-            vendor.post_code = obj.value("post_code").toString();
-            vendor.country = obj.value("country").toString();
-
-            QString longitude = obj.value("longitude").toString();
-            vendor.longitude = longitude.toDouble();
-
-            QString latitude = obj.value("latitude").toString();
-            vendor.latitude = latitude.toDouble();
-
-            vendor.phone = obj.value("phone").toString(); // keep as string to allow for +, - etc.
-            vendor.website_url = obj.value("website_url")
-                                     .toString(); //TODO:: you can make this a URL resource?
-            vendorDatabase.push_back(vendor);
-        }
-    }
-    qDebug() << "Database populated with" << vendorDatabase.size() << "entries.";
-}
-
 PintBackend::PintBackend()
     : QObject()
+    , m_vendorModel(new VendorModel(this))
 {
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     connect(this, &PintBackend::apiResponseReceived, this, &PintBackend::handleApiResponse);
@@ -83,87 +30,138 @@ PintBackend::PintBackend()
     sendRequest("https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200");
 }
 
-bool compareByNameLength(const vendorData &a, const vendorData &b)
+void PintBackend::populateDatabase(const QByteArray &response)
 {
-    return a.name.length() < b.name.length();
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(response);
+
+    if (!jsonDoc.isArray()) {
+        qCritical() << "Invalid JSON format: Expected an array";
+        return;
+    }
+
+    QJsonArray jsonArray = jsonDoc.array();
+    QList<vendorData> vendors;
+
+    for (const QJsonValue &value : jsonArray) {
+        if (value.isObject()) {
+            QJsonObject obj = value.toObject();
+            vendorData vendor;
+            vendor.id = obj.value("id").toString();
+            vendor.name = obj.value("name").toString();
+            vendor.brewery_type = obj.value("brewery_type").toString();
+            vendor.address = obj.value("address_1").toString() + " "
+                             + obj.value("address_2").toString() + " "
+                             + obj.value("address_3").toString();
+            vendor.city = obj.value("city").toString();
+            vendor.state_province = obj.value("state_province").toString();
+            vendor.post_code = obj.value("post_code").toString();
+            vendor.country = obj.value("country").toString();
+            vendor.longitude = obj.value("longitude").toString().toDouble();
+            vendor.latitude = obj.value("latitude").toString().toDouble();
+            vendor.phone = obj.value("phone").toString();
+            vendor.website_url = obj.value("website_url").toString();
+
+            vendors.append(vendor);
+        }
+    }
+    m_vendorModel->addVendors(vendors);
+    qDebug() << "Database populated with" << vendors.size() << "entries.";
 }
 
-//TODO:: probably a silly way to do this, what is a better way?, or suck it up and learn to use LAMBDAS
-bool compareByHighestLatitude(const vendorData &a, const vendorData &b)
+QVariantMap PintBackend::createVendorMap(QModelIndex modelIndex)
 {
-    return a.latitude
-           < b.latitude; // Latitude (north or south) always precedes longitude (east or west)
-}
+    QVariantMap vendor;
+    vendor["name"] = m_vendorModel->data(modelIndex, VendorModel::NameRole);
+    vendor["phone"] = m_vendorModel->data(modelIndex, VendorModel::PhoneRole);
+    vendor["website_url"] = m_vendorModel->data(modelIndex, VendorModel::WebsiteUrlRole);
+    vendor["address"] = m_vendorModel->data(modelIndex, VendorModel::AddressRole);
+    vendor["city"] = m_vendorModel->data(modelIndex, VendorModel::CityRole);
+    vendor["country"] = m_vendorModel->data(modelIndex, VendorModel::CountryRole);
+    vendor["latitude"] = m_vendorModel->data(modelIndex, VendorModel::LatitudeRole);
+    vendor["longitude"] = m_vendorModel->data(modelIndex, VendorModel::LongitudeRole);
 
-bool compareByLowestlatitude(const vendorData &a, const vendorData &b)
-{
-    return a.latitude < b.latitude;
-}
-
-QVariantMap createVendorMap(const vendorData &data)
-{
-    QVariantMap vendorMap;
-    vendorMap["id"] = data.id;
-    vendorMap["name"] = data.name;
-    vendorMap["phone"] = data.phone;
-    vendorMap["address1"] = data.address_1 + " " + data.address_2 + " " + data.address_3;
-    vendorMap["city"] = data.city;
-    vendorMap["country"] = data.country;
-    vendorMap["website_url"] = data.website_url;
-    return vendorMap;
+    return vendor;
 }
 
 QVariant PintBackend::findNorthern()
 {
-    if (vendorDatabase.empty()) {
+    if (m_vendorModel->rowCount() == 0) {
+        qWarning() << "VendorModel is empty.";
         return QVariant();
     }
 
-    auto northern = std::max_element(vendorDatabase.begin(),
-                                     vendorDatabase.end(),
-                                     compareByHighestLatitude);
-
-    if (northern != vendorDatabase.end()) {
-        QVariantMap vendorMap;
-        vendorMap = createVendorMap(*northern);
-        return vendorMap;
+    double maxLatitude = -90.0;
+    int index = -1;
+    for (int i = 0; i < m_vendorModel->rowCount(); ++i) {
+        QModelIndex modelIndex = m_vendorModel->index(i, 0);
+        double latitude = m_vendorModel->data(modelIndex, VendorModel::LatitudeRole).toDouble();
+        if (latitude > maxLatitude) {
+            maxLatitude = latitude;
+            index = i;
+        }
     }
+
+    if (index != -1) {
+        QModelIndex modelIndex = m_vendorModel->index(index, 0);
+        QVariantMap vendor = createVendorMap(modelIndex);
+        return vendor;
+    }
+
     return QVariant();
 }
 
 QVariant PintBackend::findSouthern()
 {
-    if (vendorDatabase.empty()) {
+    if (m_vendorModel->rowCount() == 0) {
+        qWarning() << "VendorModel is empty.";
         return QVariant();
     }
 
-    auto southern = std::min_element(vendorDatabase.begin(),
-                                     vendorDatabase.end(),
-                                     compareByLowestlatitude);
-
-    if (southern != vendorDatabase.end()) {
-        QVariantMap vendorMap;
-        vendorMap = createVendorMap(*southern);
-        return vendorMap;
+    double minLatitude = 91.0;
+    int index = -1;
+    for (int i = 0; i < m_vendorModel->rowCount(); ++i) {
+        QModelIndex modelIndex = m_vendorModel->index(i, 0);
+        double latitude = m_vendorModel->data(modelIndex, VendorModel::LatitudeRole).toDouble();
+        if (latitude < minLatitude) {
+            minLatitude = latitude;
+            index = i;
+        }
     }
+
+    if (index != -1) {
+        QModelIndex modelIndex = m_vendorModel->index(index, 0);
+        QVariantMap vendor = createVendorMap(modelIndex);
+        return vendor;
+    }
+
     return QVariant();
 }
 
 QVariant PintBackend::findLongestName()
 {
-    if (vendorDatabase.empty()) {
+    if (m_vendorModel->rowCount() == 0) {
+        qWarning() << "VendorModel is empty.";
         return QVariant();
     }
 
-    auto longest = std::max_element(vendorDatabase.begin(),
-                                    vendorDatabase.end(),
-                                    compareByNameLength);
+    int longestNameLength = -1;
+    int index = -1;
 
-    if (longest != vendorDatabase.end()) {
-        QVariantMap vendorMap;
-        vendorMap = createVendorMap(*longest);
-        return vendorMap;
+    for (int i = 0; i < m_vendorModel->rowCount(); ++i) {
+        QModelIndex modelIndex = m_vendorModel->index(i, 0);
+        QString name = m_vendorModel->data(modelIndex, VendorModel::NameRole).toString();
+        if (name.length() > longestNameLength) {
+            longestNameLength = name.length();
+            index = i;
+        }
     }
+
+    if (index != -1) {
+        QModelIndex modelIndex = m_vendorModel->index(index, 0);
+        QVariantMap vendor = createVendorMap(modelIndex);
+        return vendor;
+    }
+
     return QVariant();
 }
 
@@ -185,4 +183,3 @@ void PintBackend::sendRequest(const QString &endpoint)
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     networkManager.get(request);
 }
-

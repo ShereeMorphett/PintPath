@@ -3,6 +3,7 @@
 
 #include <QNetworkAccessManager>
 #include <QObject>
+#include "vendormodel.h"
 #include <qqml.h>
 
 struct vendorData
@@ -10,6 +11,7 @@ struct vendorData
     QString id;
     QString name;
     QString brewery_type;
+    QString address; //CONCATINATE ON PARSING
     QString address_1;
     QString address_2;
     QString address_3;
@@ -38,6 +40,7 @@ public:
     Q_INVOKABLE QVariant findNorthern();
     Q_INVOKABLE QVariant findSouthern();
     Q_INVOKABLE QVariant findLongestName();
+    Q_INVOKABLE VendorModel *getVendorModel() const { return m_vendorModel; }
 
 signals:
     void isWorkingChanged();
@@ -50,11 +53,12 @@ private slots:
     void handleApiError(const QString &error);
 
 private:
-    std::vector<vendorData> vendorDatabase;
-    bool m_isWorking;
+    VendorModel *m_vendorModel;
+
     QNetworkAccessManager networkManager;
 
     void populateDatabase(const QByteArray &response);
+    QVariantMap createVendorMap(QModelIndex modelIndex);
 };
 
 #endif // PINTBACKEND_H
