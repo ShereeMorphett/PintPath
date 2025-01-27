@@ -113,7 +113,7 @@ QVariantMap createVendorMap(const vendorData &data)
     return vendorMap;
 }
 
-QVariant PintBackend::findNorthern() //todo :: create vendor map function
+QVariant PintBackend::findNorthern()
 {
     if (vendorDatabase.empty()) {
         return QVariant();

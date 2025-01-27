@@ -19,8 +19,8 @@ struct vendorData
     QString country;
     double longitude;
     double latitude;
-    QString phone;       //TODO could have that open the phone app to call?
-    QString website_url; //TODO could have the hyperlink work?
+    QString phone;
+    QString website_url;
 };
 
 QDebug operator<<(QDebug debug, const vendorData &data);
