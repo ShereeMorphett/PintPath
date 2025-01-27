@@ -1,6 +1,3 @@
-pragma ComponentBehavior
-
-//TODO: remove this
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Basic
@@ -29,7 +26,7 @@ Window {
     }
 
     function updateVendorModel(vendors) {
-        vendorModel.clear()
+        let vendorModel = backendManager.getVendorModel()
 
         if (!vendors || vendors.length === 0) {
             console.log("No vendors found")
@@ -53,14 +50,12 @@ Window {
                                    "breweryType": vendor.breweryType
                                })
 
-            // Update bounds for zooming
             minLat = Math.min(minLat, vendor.latitude)
             maxLat = Math.max(maxLat, vendor.latitude)
             minLon = Math.min(minLon, vendor.longitude)
             maxLon = Math.max(maxLon, vendor.longitude)
         }
 
-        // Calculate the center of the bounding box
         let centerLat = (minLat + maxLat) / 2
         let centerLon = (minLon + maxLon) / 2
         view.map.center = QtPositioning.coordinate(centerLat, centerLon)
@@ -71,13 +66,13 @@ Window {
         let maxDiff = Math.max(latDiff, lonDiff)
 
         if (maxDiff < 0.01) {
-            view.map.zoomLevel = 15 // Very close
+            view.map.zoomLevel = 15
         } else if (maxDiff < 0.1) {
-            view.map.zoomLevel = 12 // Medium zoom
+            view.map.zoomLevel = 12
         } else if (maxDiff < 1) {
-            view.map.zoomLevel = 10 // Further out
+            view.map.zoomLevel = 10
         } else {
-            view.map.zoomLevel = 8 // Very far
+            view.map.zoomLevel = 8
         }
     }
 
@@ -296,25 +291,29 @@ Window {
                         Layout.fillWidth: true
                         model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food"]
                         onActivated: index => {
-                            switch (index) {
-                                case 0:
-                                updateVendorModel(
-                                    [backendManager.findSouthern()])
-                                break
-                                case 1:
-                                updateVendorModel(
-                                    [backendManager.findNorthern()])
-                                break
-                                case 2:
-                                updateVendorModel(
-                                    [backendManager.findLongestName()])
-                                break
-                                case 3:
-                                updateVendorModel(
-                                    backendManager.findServesFood())
-                                break
-                            }
-                        }
+                                         switch (index) {
+                                             case 0:
+                                             window.updateVendorModel(
+                                                 [backendManager.findSouthern(
+                                                      )])
+                                             break
+                                             case 1:
+                                             window.updateVendorModel(
+                                                 [backendManager.findNorthern(
+                                                      )])
+                                             break
+                                             case 2:
+                                             window.updateVendorModel(
+                                                 [backendManager.findLongestName(
+                                                      )])
+                                             break
+                                             case 3:
+                                             window.updateVendorModel(
+                                                 backendManager.findServesFood(
+                                                     ))
+                                             break
+                                         }
+                                     }
                     }
 
                     Rectangle {
@@ -332,7 +331,7 @@ Window {
                             map.zoomLevel: -40
 
                             MapItemView {
-                                model: vendorModel
+                                model: backendManager.getVendorModel()
                                 parent: view.map
                                 delegate: MapQuickItem {
                                     coordinate: QtPositioning.coordinate(
@@ -349,13 +348,13 @@ Window {
                                                 anchors.fill: parent
                                                 onClicked: {
                                                     popup.vendorName = model.name
-                                                    || "Unknown Name"
+                                                            || "Unknown Name"
                                                     popup.vendorAddress = model.address
-                                                    || "Address Not Available"
+                                                            || "Address Not Available"
                                                     popup.vendorPhone = model.phone
-                                                    || "N/A"
+                                                            || "N/A"
                                                     popup.vendorWebsite = model.websiteUrl
-                                                    || "N/A"
+                                                            || "N/A"
                                                     popup.open()
                                                 }
                                             }
@@ -394,7 +393,7 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                     onClicked: {
                         backendManager.sendRequest(
-                            "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
+                                    "https://api.openbrewerydb.org/v1/breweries?by_country=ireland&per_page=200")
                     }
                 }
             }
