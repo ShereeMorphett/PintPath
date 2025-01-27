@@ -26,6 +26,9 @@ class VendorModel : public QAbstractItemModel
         WebsiteUrlRole
     };
 
+public slots:
+    void clear();
+
 public:
     VendorModel(QObject *parent);
 
@@ -39,6 +42,7 @@ public:
 
     void addVendor(const vendorData &vendor);
     void addVendors(const QList<vendorData> vendors);
+    Q_INVOKABLE void append(const QVariantMap &vendor); //Only need one
 
 private:
     QList<vendorData> vendorDataList;

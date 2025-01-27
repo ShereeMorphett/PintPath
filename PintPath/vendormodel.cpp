@@ -16,13 +16,40 @@ QModelIndex VendorModel::index(int row, int column, const QModelIndex &parent) c
 QModelIndex VendorModel::parent(const QModelIndex &child) const
 {
     Q_UNUSED(child);
-    return QModelIndex(); // Flat model, no parent-child relationships
+    return QModelIndex();
 }
 
 int VendorModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 1; // Single column for a flat list
+    return 1;
+}
+
+void VendorModel::clear()
+{
+    beginResetModel();
+    vendorDataList.clear();
+    endResetModel();
+}
+
+void VendorModel::append(const QVariantMap &vendor)
+{
+    beginInsertRows(QModelIndex(), vendorDataList.size(), vendorDataList.size());
+    vendorData newVendor;
+    newVendor.id = vendor.value("id").toString();
+    newVendor.name = vendor.value("name").toString();
+    newVendor.address = vendor.value("address").toString();
+    newVendor.city = vendor.value("city").toString();
+    newVendor.stateProvince = vendor.value("stateProvince").toString();
+    newVendor.postcode = vendor.value("postCode").toString();
+    newVendor.country = vendor.value("country").toString();
+    newVendor.latitude = vendor.value("latitude").toDouble();
+    newVendor.longitude = vendor.value("longitude").toDouble();
+    newVendor.phone = vendor.value("phone").toString();
+    newVendor.websiteUrl = vendor.value("websiteUrl").toString();
+    newVendor.breweryType = vendor.value("breweryType").toString();
+    vendorDataList.append(newVendor);
+    endInsertRows();
 }
 
 void VendorModel::addVendor(const vendorData &vendor)
@@ -34,7 +61,6 @@ void VendorModel::addVendor(const vendorData &vendor)
 
 void VendorModel::addVendors(const QList<vendorData> vendors)
 {
-    qDebug() << "In addVendors: ", vendors.size();
     if (vendors.isEmpty()) {
         qWarning() << "Attempted to add an empty vendors list!";
         return;
@@ -44,7 +70,6 @@ void VendorModel::addVendors(const QList<vendorData> vendors)
                     vendorDataList.size() + vendors.size() - 1);
     vendorDataList.append(vendors);
     endInsertRows();
-    qDebug() << "out addVendors";
 }
 
 // Required overrides
@@ -61,15 +86,15 @@ QVariant VendorModel::data(const QModelIndex &index, int role) const
     case NameRole:
         return vendor.name;
     case BreweryTypeRole:
-        return vendor.brewery_type;
+        return vendor.breweryType;
     case AddressRole:
         return vendor.address; /* + " " + vendor.address_2 + " " + vendor.address_3;*/
     case CityRole:
         return vendor.city;
     case StateProvinceRole:
-        return vendor.state_province;
+        return vendor.stateProvince;
     case PostcodeRole:
-        return vendor.post_code;
+        return vendor.postcode;
     case CountryRole:
         return vendor.country;
     case LongitudeRole:
@@ -79,7 +104,7 @@ QVariant VendorModel::data(const QModelIndex &index, int role) const
     case PhoneRole:
         return vendor.phone;
     case WebsiteUrlRole:
-        return vendor.website_url;
+        return vendor.websiteUrl;
     default:
         return QVariant();
     }
