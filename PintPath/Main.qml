@@ -9,7 +9,6 @@ import QtQuick.Window 2.15
 import QtQuick.Controls.Material
 import PintPath 1.0
 
-///////
 import QtPositioning
 import QtLocation
 
@@ -229,6 +228,7 @@ Window {
                     }
                 }
             }
+
             ListModel {
                 id: searchModel
                 ListElement {
@@ -237,6 +237,7 @@ Window {
                     title: "Pin Location"
                 }
             }
+
             Plugin {
                 id: myPlugin
                 name: "osm"
@@ -248,49 +249,69 @@ Window {
 
             Item {
                 id: mapTab
-                MapView {
-                    id: view
-                    property variant lastSearchPosition: QtPositioning.coordinate(
-                                                             -34.9673, 138.6963)
+                ColumnLayout {
+                    id: mapUi
                     anchors.fill: parent
-                    map.plugin: myPlugin
-                    map.center: lastSearchPosition
-                    map.zoomLevel: 13
+                    spacing: 10
 
-                    MapItemView {
-                        model: searchModel
-                        parent: view.map
-                        delegate: MapQuickItem {
-                            coordinate: QtPositioning.coordinate(
-                                            model.latitude,
-                                            model.longitude) // Use `model` instead of `searchModel`
+                    ComboBox {
+                        id: filterUi
+                        visible: true
+                        Layout.fillWidth: true
+                        model: ["Southern Most Brewery", "Longest Most Brewery", "Longest Name", "Food"]
+                    }
 
-                            anchorPoint.x: rectangle.width * 0.5 // Use the correct reference
-                            anchorPoint.y: rectangle.height
+                    Rectangle {
+                        id: bounds
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
 
-                            sourceItem: Column {
-                                spacing: 5
-                                Rectangle {
-                                    id: rectangle
-                                    width: 20
-                                    height: 20
-                                    radius: 10 // Makes the rectangle circular
-                                    color: "red"
-                                    border.color: "black"
-                                    border.width: 2
-                                }
+                        MapView {
+                            id: view
+                            anchors.fill: parent
+                            property variant lastSearchPosition: QtPositioning.coordinate(
+                                                                     -34.9673,
+                                                                     138.6963)
+                            visible: true
+                            map.plugin: myPlugin
+                            map.center: lastSearchPosition
+                            map.zoomLevel: 13
 
-                                Text {
-                                    text: model.title // Use `model.title`
-                                    font.bold: true
-                                    color: "black"
-                                    horizontalAlignment: Text.AlignHCenter
+                            MapItemView {
+                                model: searchModel
+                                parent: view.map
+                                delegate: MapQuickItem {
+                                    coordinate: QtPositioning.coordinate(
+                                                    model.latitude,
+                                                    model.longitude)
+
+                                    anchorPoint.x: rectangle.width * 0.5
+                                    anchorPoint.y: rectangle.height
+
+                                    sourceItem: Column {
+                                        spacing: 5
+                                        Rectangle {
+                                            id: rectangle
+                                            width: 20
+                                            height: 20
+                                            radius: 10
+                                            color: "red"
+                                            border.color: "black"
+                                            border.width: 2
+                                        }
+
+                                        Text {
+                                            text: model.title
+                                            font.bold: true
+                                            color: "black"
+                                            horizontalAlignment: Text.AlignHCenter
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                //////////////
             }
 
             Item {
