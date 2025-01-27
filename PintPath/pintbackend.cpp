@@ -83,6 +83,28 @@ QVariantMap PintBackend::createVendorMap(QModelIndex modelIndex)
     return vendor;
 }
 
+QVariant PintBackend::findServesFood()
+{
+    if (m_vendorModel->rowCount() == 0) {
+        qWarning() << "VendorModel is empty.";
+        return QVariant();
+    }
+
+    QList<QVariantMap> vendors;
+
+    for (int i = 0; i < m_vendorModel->rowCount(); ++i) {
+        QModelIndex modelIndex = m_vendorModel->index(i, 0);
+        QString breweryType = m_vendorModel->data(modelIndex, VendorModel::BreweryTypeRole)
+                                  .toString();
+        if (breweryType == "brewpub") {
+            QVariantMap vendor = createVendorMap(modelIndex);
+            vendors.append(vendor);
+        }
+    }
+
+    return QVariant::fromValue(vendors);
+}
+
 QVariant PintBackend::findNorthern()
 {
     if (m_vendorModel->rowCount() == 0) {
