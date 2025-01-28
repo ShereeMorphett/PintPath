@@ -94,7 +94,7 @@ The project has:
 - Transition to Qt Models improved data handling.
 
 # **Areas for Improvement**
-- My frontend development design skills.
+- My frontend development/design skills.
 - Enhancing the UI for a more polished look.
 - Simplifying deployment on Android by streamlining the setup process.
 - Expanding functionality to include breweries from other countries.
