@@ -139,7 +139,10 @@ Window {
                       + "<a href='" + popup.vendorWebsite
                       + "' style='color: #ffffff;'>" + popup.vendorWebsite + "</a>"
                 textFormat: Text.RichText
+                wrapMode: Text.Wrap
                 leftPadding: popup.padding + 3
+                Layout.preferredWidth: popup.width - 2 * popup.padding
+                verticalAlignment: Text.AlignVCenter
                 visible: popup.vendorWebsite && String(
                              popup.vendorWebsite) !== "N/A"
                 onLinkActivated: {
@@ -219,50 +222,56 @@ Window {
 
             Item {
                 id: breweriesTab
+                anchors.fill: parent
 
-                GridLayout {
-                    id: column
-                    width: 100
-                    rows: 1
-                    columns: 2
-                    property string selectedTab: ""
+                Item {
+                    width: parent.width
+                    anchors.margins: 10
 
-                    Button {
-                        id: northern_brew
-                        text: qsTr("Northern Most Brewery")
-                        highlighted: column.selectedTab === "northern"
-                        flat: false
-                        onClicked: {
-                            column.selectedTab = "northern"
-                            let northVendor = backendManager.findNorthern()
-                            window.parseVendor(northVendor)
-                            popup.open()
+                    GridLayout {
+                        id: column
+                        rows: 2
+                        columns: 2
+                        property string selectedTab: ""
+                        anchors.fill: parent
+
+                        Button {
+                            id: northern_brew
+                            text: qsTr("Northern Most Brewery")
+                            highlighted: column.selectedTab === "northern"
+                            flat: false
+                            onClicked: {
+                                column.selectedTab = "northern"
+                                let northVendor = backendManager.findNorthern()
+                                window.parseVendor(northVendor)
+                                popup.open()
+                            }
                         }
-                    }
 
-                    Button {
-                        id: southern_brew
-                        text: qsTr("Southern Most Brewery")
-                        highlighted: column.selectedTab === "southern"
-                        flat: false
-                        onClicked: {
-                            column.selectedTab = "southern"
-                            let southVendor = backendManager.findSouthern()
-                            window.parseVendor(southVendor)
-                            popup.open()
+                        Button {
+                            id: southern_brew
+                            text: qsTr("Southern Most Brewery")
+                            highlighted: column.selectedTab === "southern"
+                            Layout.fillWidth: true
+                            flat: false
+                            onClicked: {
+                                column.selectedTab = "southern"
+                                let southVendor = backendManager.findSouthern()
+                                window.parseVendor(southVendor)
+                                popup.open()
+                            }
                         }
-                    }
-
-                    Button {
-                        id: longest_name
-                        text: qsTr("Longest Name")
-                        highlighted: column.selectedTab === "longest"
-                        flat: false
-                        onClicked: {
-                            column.selectedTab = "longest"
-                            let longestVendor = backendManager.findLongestName()
-                            window.parseVendor(longestVendor)
-                            popup.open()
+                        Button {
+                            id: longest_name
+                            text: qsTr("Longest Name")
+                            highlighted: column.selectedTab === "longest"
+                            flat: false
+                            onClicked: {
+                                column.selectedTab = "longest"
+                                let longestVendor = backendManager.findLongestName()
+                                window.parseVendor(longestVendor)
+                                popup.open()
+                            }
                         }
                     }
                 }
@@ -271,10 +280,6 @@ Window {
             Plugin {
                 id: myPlugin
                 name: "osm"
-                //specify plugin parameters if necessary - this is where the API key goes
-                //PluginParameter {...}
-                //PluginParameter {...}
-                //...
             }
 
             Item {
@@ -286,7 +291,8 @@ Window {
                     ComboBox {
                         visible: true
                         Layout.fillWidth: true
-                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food"]
+                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food", "Choose a filter"]
+                        currentIndex: 4
                         onActivated: index => {
                                          switch (index) {
                                              case 0:
@@ -308,6 +314,7 @@ Window {
                                              window.updateVendorModel(
                                                  backendManager.findServesFood(
                                                      ))
+                                             default:
                                              break
                                          }
                                      }
@@ -320,7 +327,6 @@ Window {
                     Rectangle {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
-
                         MapView {
                             id: view
                             anchors.fill: parent
@@ -345,9 +351,9 @@ Window {
                                         spacing: 5
                                         Rectangle {
                                             id: rectangle
-                                            width: 10
-                                            height: 10
-                                            radius: 5
+                                            width: 15
+                                            height: 15
+                                            radius: 7
                                             color: "red"
                                             border.color: "black"
                                             border.width: 1
