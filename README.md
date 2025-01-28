@@ -1,59 +1,114 @@
-## Initial approach
-
-- [X] Setup and Familiarization
-  Go through basic Qt Quick and Qt Creator tutorials, including deploying a simple app on Android. - 
-
-- [X] Understanding Open Brewery API and Data Handling
-Explore API documentation and test API calls using tools like Postman or a browser.
-Experiment with making API calls from C++ code in a Qt environment.
-Backend Development
-
-- [X] Implement C++ classes to fetch and process data from the API.
-Identify northernmost, southernmost, and longest-name breweries.
-
-- [X] Frontend Development in QML
-    
-- [X] Run the app on the desktop, Android emulator, and physical hardware.
-
-- [x] Design the UI to display brewery information.
-
-- [x] Link C++ backend with QML frontend using the signal-slot mechanism.
-
-- [x] Add eye candy, like a map, using Qt's location or map components, different filters ie does it serve food, different locator pins.
-  - [ ] potentially different countrys 
 
 
-- [x] Testing and Deployment
+# **Brewery Explorer App**
 
-- [ ] Documentation and Finalization (Wednesday)
-  -  [ ] Write the README.md, detailing the learning process, challenges, and the creation workflow.
-    
-- [X]  Prepare the GitHub repository.
-      
-- [ ]  Link the GitHubs.
+## **Introduction**
+The Brewery Explorer App is a cross-platform application built with Qt Quick and QML, designed to fetch and display brewery data from Ireland. The app integrates a RESTful API to provide real-time information and demonstrates key Qt functionalities, including the signal-slot mechanism, dynamic UI updates, and multi-platform deployment.
 
-## resources
-https://doc.qt.io/qt-6/qnetworkaccessmanager.html
-
-https://www.qt.io/blog/restful-client-applications-in-qt-6.7-and-forward
-
--https://www.openbrewerydb.org/documentation - Open Brewery Rest API's
-
--https://doc.qt.io/qt-6/android.html - Qt for Android documentation, where you can get started
-
--https://academy.qt.io/catalog - Learning courses where you can find help, for example "Introduction to Qt Quick"
+Key Features:
+- Identify the **northernmost** and **southernmost** breweries.
+- Display the brewery with the **longest name**.
+- An interactive map with brewery filters.
+- Supports both desktop and Android platforms.
 
 
-## Issues I ran into
-linking openSSL to android, learning androindManifest.xml  Cmake linking, how do fetch content on cmake and move to the right spot for the androindManifest.xml permissions
-Qtdesign tab on Qtcreator
+## **Background Information**  //TODO: this needs work
+This project was undertaken to deepen familiarity with the Qt framework, specifically in:
+- Developing cross-platform applications for desktop and Android.
+- Designing and connecting a responsive UI using Qt Quick and QML.
 
-## Testing
-- Desktop
-   - MinGW
-- Android (unknown version) API level 35
-    - CPU architecture x86_64
-    - Google Play
-- Samsung
-    - CPU architecture ARM64
-    - Google Play
+The project also aimed to overcome common challenges in multi-platform development, including API integration, UI responsiveness, and deployment on Android hardware.
+
+
+## **Creation Process**
+
+1. **Setup and Familiarization:**
+   - Followed Qt Quick and Qt Creator tutorials from Qt Academy to understand core functionalities.
+   - Learned how to set up emulators and configure CMake for different build systems.
+   - Successfully deployed a basic app on Android to ensure development environment readiness.
+    - Tested on different architecture to resolve platform-specific issues such as Android permissions and correct APK packaging.
+2. **API Exploration:**
+   - Read the Open Brewery API documentation and tested basic calls.
+   - Implimented a server for using the API calls, discovered that Qt has QNetworkAccessManager and replaced the server with one class.
+   - Learned how to connect C++ and QML code through regestering C++ code with the engine 
+   - Experimented with making API calls in the C++ backend of a Qt application.
+3. **Backend Development:**
+   - Implemented C++ classes to fetch and process brewery data, including determining:
+     - Northernmost brewery.
+     - Southernmost brewery.
+     - Brewery with the longest name.
+     - Breweries that also sell food.
+    - This class originally was written with a std::vector of structs however once I started implimenting the MapView I learned about how to use models in QML and implimented a vendor model class to simplify data handling between C++ and QML.
+    - Learned the differnce between a createable type and a non-createable type
+4. **Frontend Development in QML:**
+   - Designed a UI in Qt Quick for displaying brewery data dynamically.
+   - Discovered how to correctly set up and manage IDE intellisense to make sure warnings were correct and fixed if they were accurate.
+   - Connected the C++ backend with the QML frontend using for live data updates.
+   - Added potential features like map integration, brewery filters (e.g., serving food), and different locator pins.
+   - Used Qtdesign elements to help create responsive design that works on multiple devices.
+5. **Testing and Deployment:**
+   - Tested on desktop, Android emulator, and physical hardware, iterating to resolve platform-specific issues such as Android permissions and correct APK packaging.
+
+
+## **Learning Experience**
+
+### **What I Learned**
+1. **Qt Framework:**
+   - How to use Qtcreator and Qtdesign together.
+   - How to develop an app with Qtquick and the different tools available in Qt's libraries.
+   - How app deployment works and how to use AVDs to test multiple architectures.
+   - Learned about Qt components like Qt Models, QNetworkAccessManager and MapView.
+3. **Cross-Platform Development:**
+   - Gained practical experience deploying apps on desktop, Android Emulator, and physical devices.
+4. **UI Challenges:**
+   - Improved QML and Qt Quick design skills through experimentation and using tutorials from Qt Academy and documentation.
+   - Creating a MapView with the Plugin setup in QML
+
+### **Challenges and Resolutions**
+- **Linking OpenSSL to Android:**
+  - Resolved through research and adjustments in `androidManifest.xml` and CMake linking.
+  - How to fetch content on CMake and move to the right spot for the androindManifest.xml permissions
+- **Handling Permissions:**
+  - Learned to configure `androidManifest.xml` and `CMake` to handle necessary permissions for API calls.
+- **Frontend Design Struggles:**
+  - Utilized resources and examples to build a functional and visually appealing UI.
+- **Switching to Qt Models:**
+  - Transitioned from using a `std::vector`-based data structure to Qt Models for better compatibility with QML, inspired by Qt tutorials.
+
+## **My Reflection**
+
+### What Worked Well
+- Smooth integration of C++ backend to QML frontend.
+- Transition to Qt Models improved data handling.
+
+### Areas for Improvement
+- My patients with frontend development.
+- Enhancing the UI for a more polished look.
+- Simplifying deployment on Android by streamlining the setup process.
+- Expand functionality to include breweries from other countries.
+
+
+## **Testing**
+
+### Platforms
+1. **Desktop:**
+   - Compiler: MinGW
+2. **Android:**
+   - Emulator: API Level 35, x86_64 architecture
+   - Physical Devices:
+     - Samsung (ARM64 architecture, Google Play support)
+
+
+## **Information**
+
+### **Running the App**
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   ```
+2. Open the project in Qt Creator.
+3. Install required Qt modules, including `Qt Quick` and `Qt for Android`.
+4. Deploy:
+   - For desktop: Select the desktop kit and run the app.
+   - For Android: Set up the Android environment and deploy to the emulator or hardware.
+
