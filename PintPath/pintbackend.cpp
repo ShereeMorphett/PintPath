@@ -65,7 +65,6 @@ void PintBackend::populateDatabase(const QByteArray &response)
         }
     }
     m_vendorModel->addVendors(vendors);
-    qDebug() << "Database populated with" << vendors.size() << "entries.";
 }
 
 QVariantMap PintBackend::createVendorMap(QModelIndex modelIndex)

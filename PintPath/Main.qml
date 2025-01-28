@@ -222,22 +222,22 @@ Window {
 
             Item {
                 id: breweriesTab
-                anchors.fill: parent
+                Layout.fillWidth: true
 
                 Item {
-                    width: parent.width
+                    width: parent.width - 5
                     anchors.margins: 10
-
                     GridLayout {
                         id: column
                         rows: 2
                         columns: 2
                         property string selectedTab: ""
                         anchors.fill: parent
+                        columnSpacing: 3
 
                         Button {
                             id: northern_brew
-                            text: qsTr("Northern Most Brewery")
+                            text: qsTr("Northernmost Brewery")
                             highlighted: column.selectedTab === "northern"
                             flat: false
                             onClicked: {
@@ -250,9 +250,9 @@ Window {
 
                         Button {
                             id: southern_brew
-                            text: qsTr("Southern Most Brewery")
+                            text: qsTr("Southernmost Brewery")
                             highlighted: column.selectedTab === "southern"
-                            Layout.fillWidth: true
+                            // Layout.fillWidth: true
                             flat: false
                             onClicked: {
                                 column.selectedTab = "southern"
@@ -291,7 +291,7 @@ Window {
                     ComboBox {
                         visible: true
                         Layout.fillWidth: true
-                        model: ["Southern Most Brewery", "Northern Most Brewery", "Longest Name", "Serves Food", "Choose a filter"]
+                        model: ["Southernmost Brewery", "Northernmost Brewery", "Longest Name", "Serves Food", "Choose a filter"]
                         currentIndex: 4
                         onActivated: index => {
                                          switch (index) {
