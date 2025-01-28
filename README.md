@@ -1,6 +1,6 @@
-# **Brewery Explorer App**
+# **PintPath App**
 
-The Brewery Explorer App is a cross-platform application built with Qt Quick and QML, designed to fetch and display brewery data from Ireland. The app integrates a RESTful API to provide real-time information and demonstrates key Qt functionalities, including the signal-slot mechanism, dynamic UI updates, and multi-platform deployment.
+The PintPath App is a cross-platform application built with Qt Quick and QML, designed to fetch and display brewery data from Ireland. The app integrates a RESTful API to provide real-time information and demonstrates key Qt functionalities, including the signal-slot mechanism, dynamic UI updates, and multi-platform deployment.
 
 Key Features:
 - Identify the **northernmost** and **southernmost** breweries.
