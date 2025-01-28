@@ -98,6 +98,7 @@ The project has:
 - Enhancing the UI for a more polished look.
 - Simplifying deployment on Android by streamlining the setup process.
 - Expanding functionality to include breweries from other countries.
+- Adding the API_Key in of OSM
 
 ---
 
