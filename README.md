@@ -13,12 +13,13 @@ Key Features:
 
 
 ## **Background Information**  //TODO: this needs work
-This project was undertaken to deepen familiarity with the Qt framework, specifically in:
-- Developing cross-platform applications for desktop and Android.
-- Designing and connecting a responsive UI using Qt Quick and QML.
-
-The project also aimed to overcome common challenges in multi-platform development, including API integration, UI responsiveness, and deployment on Android hardware.
-
+  This project was an opportunity to build my first Android application, with a focus on creating a cross-platform app. I started with minimal experience in Android app design and development, which made this project a fun adventure in build systems and app packaging.
+  I approached this project with the goal of not only delivering a basic and functional app but also exploring new skills and discovering the complexities of app development for Android, desktop, and physical hardware.
+  The project has:
+    - Deepened my familiarity with the Qt framework, including Qt Quick, QML and C++/QML intergration.
+    - Developed my understaning of UI design and functionality.
+    - Allowed me to tackle challenges in multi-platform development, such as API integration, data handling, and Android deployment.
+    - Built practical experience with tools like Qt Creator, Android permissions, and CMake.
 
 ## **Creation Process**
 

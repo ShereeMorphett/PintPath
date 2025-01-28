@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     qmlRegisterType<PintBackend>("PintPath", 1, 0, "PintBackend");
 
-    // Register VendorModel as an uncreatable type
     qmlRegisterUncreatableType<VendorModel>(
         "VendorModel",
         1,
